@@ -17,6 +17,7 @@ use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Str;
 
+
 class CartController extends Controller
 {
     public function index(Request $request)

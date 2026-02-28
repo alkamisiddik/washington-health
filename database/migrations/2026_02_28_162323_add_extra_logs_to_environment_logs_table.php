@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('environment_logs', function (Blueprint $table) {
-            //
+            $table->json('extra_logs')->nullable()->after('end_humidity');
         });
     }
 

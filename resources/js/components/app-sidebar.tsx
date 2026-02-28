@@ -7,24 +7,10 @@ import {
     SidebarMenuItem
 } from '@/components/ui/sidebar';
 import { Link, usePage } from "@inertiajs/react"
-import { LayoutGrid, Users, Settings, Users2 } from 'lucide-react';
+import { LayoutGrid, Users, Truck, FileText } from 'lucide-react';
 import AppLogo from "./app-logo"
-import { NavMain } from '@/components/nav-main';
 import { NavMainEnhanced } from '@/components/nav-main-enhanced';
 import { NavUser } from '@/components/nav-user';
-
-const nurseNavItems = [
-    {
-        title: "Dashboard",
-        href: "/nurse/dashboard",
-        icon: LayoutGrid,
-    },
-    {
-        title: "Tracker Management",
-        href: "/nurse/trackers",
-        icon: Settings,
-    },
-]
 
 const adminNavItems = [
     {
@@ -38,38 +24,46 @@ const adminNavItems = [
         icon: Users,
     },
     {
-        title: "Tracker Management",
-        href: "/admin/trackers",
-        icon: Settings,
+        title: "Deliveries",
+        href: "/admin/deliveries",
+        icon: Truck,
     },
     {
-        title: "Visitor Log",
-        href: "/admin/visitorLog",
-        icon: Users2,
+        title: "Vehicles",
+        href: "/admin/vehicles",
+        icon: Truck,
     },
-    // {
-    //     title: "Tracker Management",
-    //     href: "#",
-    //     icon: Settings,
-    //     items: [
-    //         {
-    //             title: "Add Tracker",
-    //             href: "/admin/tracker/create",
-    //             icon: PlusSquare,
-    //         },
-    //         {
-    //             title: "Tracker List",
-    //             href: "/admin/tracker",
-    //             icon: List,
-    //         },
-    //     ],
-    // },
+    {
+        title: "Reports",
+        href: "/admin/reports",
+        icon: FileText,
+    },
+]
+
+const officerNavItems = [
+    {
+        title: "Dashboard",
+        href: "/officer/dashboard",
+        icon: LayoutGrid,
+    },
+]
+
+const driverNavItems = [
+    {
+        title: "Dashboard",
+        href: "/driver/dashboard",
+        icon: LayoutGrid,
+    },
 ]
 
 export function AppSidebar() {
-    const { props } = usePage()
-    const userRole = props.auth?.user?.role || "nurse"
-    const mainNavItems = userRole === "admin" ? adminNavItems : nurseNavItems
+    const { props } = usePage<{ auth: { user: { role: string } } }>();
+    const userRole = props.auth?.user?.role || "driver"
+    
+    let mainNavItems = driverNavItems;
+    if (userRole === "admin") mainNavItems = adminNavItems;
+    if (userRole === "officer") mainNavItems = officerNavItems;
+
     const dashboardRoute = '/' + userRole + '/dashboard';
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -87,7 +81,6 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMainEnhanced items={mainNavItems} />
-                {/*<NavMain items={mainNavItems} />*/}
             </SidebarContent>
 
             <SidebarFooter>

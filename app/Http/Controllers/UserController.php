@@ -19,7 +19,7 @@ class UserController extends Controller
         $sortField = $request->get('sort_field');
         $sortDirection = $request->get('sort_direction');
 
-        $usersQuery = User::where('role', 'nurse');
+        $usersQuery = User::where('role', '!=', 'admin');
 
         // Apply search filter
         if (!empty($search)) {
@@ -62,7 +62,7 @@ class UserController extends Controller
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'role' => 'nurse',
+            'role' => $request->input('role', 'driver'),
             'password' => Hash::make('password')
         ]);
 

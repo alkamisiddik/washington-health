@@ -35,8 +35,11 @@ class AuthenticatedSessionController extends Controller
         if (auth()->user()->role === 'admin') {
             return redirect()->route("admin.dashboard")->with('success', 'Login Successfully..');
         }
-        if (auth()->user()->role === 'nurse') {
-            return redirect()->route("nurse.dashboard")->with('success', 'Login Successfully..');
+        if (auth()->user()->role === 'officer') {
+            return redirect()->route("officer.dashboard")->with('success', 'Login Successfully..');
+        }
+        if (auth()->user()->role === 'driver') {
+            return redirect()->route("driver.dashboard")->with('success', 'Login Successfully..');
         }
         return redirect()->intended(route('home', absolute: false));
     }

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { type PropsWithChildren } from 'react';
-import { Image, LockIcon, Map, UsersIcon } from 'lucide-react';
+import { Image, LockIcon, UsersIcon } from 'lucide-react';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -22,12 +22,7 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: '/settings/appearance',
         icon: <Image/>,
-    },
-    {
-        title: 'Locations',
-        href: '/admin/locations',
-        icon: <Map/>,
-    },
+    }
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {

@@ -2,32 +2,75 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
-import { LayoutGrid, ListChecks, LogOut, QrCode, Settings } from 'lucide-react';
+import { LogOut, Settings, LayoutGrid, Users, Truck, FileBarChart, PlusSquare } from 'lucide-react';
+import React from 'react';
+import NotificationDropdown from './NotificationDropdown';
+
+export interface NavItem {
+    title: string;
+    href: string;
+    icon: React.ElementType;
+}
 
 interface AppHeaderProps {
     breadcrumbs?: BreadcrumbItem[];
+    navItems?: NavItem[];
 }
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const shortName = import.meta.env.VITE_SHORT_APP_NAME || 'Laravel';
 
-export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
+const getNavItems = (role: string): NavItem[] => {
+    switch (role) {
+        case 'admin':
+            return [
+                { title: 'Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
+                { title: 'Users', href: '/admin/users', icon: Users },
+                { title: 'Vehicles', href: '/admin/vehicles', icon: Truck },
+                { title: 'All Deliveries', href: '/admin/deliveries', icon: Truck },
+                { title: 'Reports', href: '/admin/reports', icon: FileBarChart },
+            ];
+        case 'officer':
+            return [
+                { title: 'Dashboard', href: '/officer/dashboard', icon: LayoutGrid },
+                { title: 'Deliveries', href: '/officer/deliveries', icon: Truck },
+                { title: 'Create Delivery', href: '/officer/deliveries/create', icon: PlusSquare },
+            ];
+        case 'driver':
+            return [
+                { title: 'Dashboard', href: '/driver/dashboard', icon: LayoutGrid },
+                { title: 'My Deliveries', href: '/driver/deliveries', icon: Truck },
+            ];
+        default:
+            return [];
+    }
+};
+
+export function AppHeader({ breadcrumbs = [], navItems: propNavItems = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
-    const role = auth.user.role;
+    const role = (auth?.user?.role as string) || 'driver';
+    
+    // Auto-fill navItems if none provided (e.g. Settings pages)
+    const navItems = propNavItems.length > 0 ? propNavItems : getNavItems(role);
 
     const routePrefix = `/${role}`;
     const dashboardRoute = `${routePrefix}/dashboard`;
-    const cartsRoute = `${routePrefix}/carts`;
-    const scanRoute = `${routePrefix}/scan`;
     const settingRoutes = ['/settings/profile', '/settings/password', '/settings/appearance', '/admin/locations'];
 
-    const { url } = usePage();
+    const { url } = usePage() as unknown as { url: string };
     const isActive = (paths: string | string[]) => {
         if (Array.isArray(paths)) {
             return paths.some(path => url.startsWith(path));
         }
-        return url.startsWith(paths);
+        if (paths === url) return true;
+        // Deliveries pages: active when current path starts with the nav path
+        if (paths === '/admin/deliveries' || paths === '/officer/deliveries') {
+            return url.startsWith(paths);
+        }
+        // Other routes: active only on exact or single-segment match to avoid e.g. /officer/deliveries/create matching /officer/deliveries
+        if (url.startsWith(paths)) return true;
+        return false;
     };
 
     const cleanup = useMobileNavigation();
@@ -49,44 +92,26 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                         <nav className="hidden md:block">
                             <ul className="flex space-x-8">
+                                {navItems.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <li key={item.href}>
+                                            <Link
+                                                href={item.href}
+                                                className={`flex items-center space-x-1 transition-colors hover:text-blue-600 dark:hover:text-blue-400 ${
+                                                    isActive(item.href)
+                                                        ? 'font-medium text-amber-600 dark:text-amber-400'
+                                                        : 'text-gray-600 dark:text-gray-300'
+                                                }`}
+                                            >
+                                                <Icon size={18} />
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
                                 <li>
-                                    <Link
-                                        href={dashboardRoute}
-                                        className={`flex items-center space-x-1 transition-colors hover:text-blue-600 dark:hover:text-blue-400 ${
-                                            isActive(dashboardRoute)
-                                                ? 'font-medium text-amber-600 dark:text-amber-400'
-                                                : 'text-gray-600 dark:text-gray-300'
-                                        }`}
-                                    >
-                                        <LayoutGrid size={18} />
-                                        <span>Dashboard</span>
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href={cartsRoute}
-                                        className={`flex items-center space-x-1 transition-colors hover:text-blue-600 dark:hover:text-blue-400 ${
-                                            isActive(cartsRoute)
-                                                ? 'font-medium text-amber-600 dark:text-amber-400'
-                                                : 'text-gray-600 dark:text-gray-300'
-                                        }`}
-                                    >
-                                        <ListChecks size={18} />
-                                        <span>Carts</span>
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link
-                                        href={scanRoute}
-                                        className={`flex items-center space-x-1 transition-colors hover:text-blue-600 dark:hover:text-blue-400 ${
-                                            isActive(scanRoute)
-                                                ? 'font-medium text-amber-600 dark:text-amber-400'
-                                                : 'text-gray-600 dark:text-gray-300'
-                                        }`}
-                                    >
-                                        <QrCode size={18} />
-                                        <span>Scan QR</span>
-                                    </Link>
+                                    <NotificationDropdown />
                                 </li>
                                 <li>
                                     <Link
@@ -107,7 +132,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         href={route('logout')}
                                         as="button"
                                         onClick={handleLogout}
-                                        className="flex items-center space-x-1 transition-colors hover:text-blue-600 dark:hover:text-blue-400"
+                                        className="flex items-center space-x-1 transition-colors hover:text-blue-600 dark:hover:text-blue-400 text-gray-600 dark:text-gray-300"
                                     >
                                         <LogOut size={18} />
                                         <span>Logout</span>
@@ -118,24 +143,19 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                         {/* Mobile menu */}
                         <div className="flex space-x-5 md:hidden">
-                            <Link
-                                href={dashboardRoute}
-                                className={isActive(dashboardRoute) ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}
-                            >
-                                <LayoutGrid />
-                            </Link>
-                            <Link
-                                href={cartsRoute}
-                                className={isActive(cartsRoute) ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}
-                            >
-                                <ListChecks />
-                            </Link>
-                            <Link
-                                href={scanRoute}
-                                className={isActive(scanRoute) ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}
-                            >
-                                <QrCode />
-                            </Link>
+                            {navItems.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className={isActive(item.href) ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}
+                                    >
+                                        <Icon />
+                                    </Link>
+                                );
+                            })}
+                            <NotificationDropdown />
                             <Link
                                 href="/settings"
                                 className={isActive(settingRoutes) ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'}

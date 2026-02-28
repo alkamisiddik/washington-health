@@ -119,13 +119,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             </TableRow>
                             <TableRow
                                 onClick={() => {
-                                    setData('email', 'nurse@gmail.com');
+                                    setData('email', 'officer@gmail.com');
                                     setData('password', '12345678');
                                 }}
                             >
-                                <TableCell>nurse@gmail.com</TableCell>
+                                <TableCell>officer@gmail.com</TableCell>
                                 <TableCell>12345678</TableCell>
-                                <TableCell>Nurse</TableCell>
+                                <TableCell>Officer</TableCell>
+                            </TableRow>
+                            <TableRow
+                                onClick={() => {
+                                    setData('email', 'driver@gmail.com');
+                                    setData('password', '12345678');
+                                }}
+                            >
+                                <TableCell>driver@gmail.com</TableCell>
+                                <TableCell>12345678</TableCell>
+                                <TableCell>Driver</TableCell>
                             </TableRow>
                         </TableHeader>
                     </Table>

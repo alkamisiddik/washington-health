@@ -1,6 +1,8 @@
 import AdminLayout from '@/layouts/AdminLayout';
 import { Head, router, usePage, Link, useForm } from '@inertiajs/react';
-import { Download, Filter, Search, Eye, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { Download, Filter, Eye, FileText, Trash2 } from 'lucide-react';
+import { ActionConfirmDialog } from '@/components/ActionConfirmDialog';
 
 interface DeliveriesProps {
     deliveries: any;
@@ -9,6 +11,7 @@ interface DeliveriesProps {
 }
 
 export default function Index({ deliveries, drivers, filters }: DeliveriesProps) {
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const { data, setData, get, processing } = useForm({
         status: filters.status || '',
         driver_id: filters.driver_id || '',
@@ -165,7 +168,7 @@ export default function Index({ deliveries, drivers, filters }: DeliveriesProps)
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <a 
+                                                <a
                                                     href={route('compliance.export', delivery.id)}
                                                     target="_blank"
                                                     rel="noreferrer"
@@ -174,13 +177,22 @@ export default function Index({ deliveries, drivers, filters }: DeliveriesProps)
                                                 >
                                                     <FileText className="h-4 w-4" />
                                                 </a>
-                                                <Link 
-                                                    href={`/admin/deliveries/${delivery.id}`}
+                                                <Link
+                                                    href={route('admin.deliveries.show', delivery.id)}
                                                     className="inline-flex items-center gap-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600"
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                     View
                                                 </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDeleteConfirmId(delivery.id)}
+                                                    className="inline-flex items-center gap-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-red-700 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-600 dark:hover:bg-red-900/20"
+                                                    title="Delete delivery"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Delete
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -222,6 +234,22 @@ export default function Index({ deliveries, drivers, filters }: DeliveriesProps)
                     )}
                 </div>
             </div>
+
+            <ActionConfirmDialog
+                open={deleteConfirmId !== null}
+                onCancel={() => setDeleteConfirmId(null)}
+                onConfirm={() => {
+                    if (deleteConfirmId) {
+                        router.delete(route('admin.deliveries.destroy', deleteConfirmId));
+                        setDeleteConfirmId(null);
+                    }
+                }}
+                title="Delete this delivery?"
+                description="This will permanently remove the delivery and all related records (checklist, environment log, chain of custody). This cannot be undone."
+                confirmText="Delete delivery"
+                cancelText="Cancel"
+                variant="destructive"
+            />
         </AdminLayout>
     );
 }

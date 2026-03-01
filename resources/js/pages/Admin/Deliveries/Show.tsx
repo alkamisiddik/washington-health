@@ -1,7 +1,9 @@
 import AdminLayout from '@/layouts/AdminLayout';
-import { Head, useForm } from '@inertiajs/react';
-import { FileText } from 'lucide-react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { FileText, Trash2 } from 'lucide-react';
 import ChainOfCustodyForm from '@/components/ChainOfCustodyForm';
+import { ActionConfirmDialog } from '@/components/ActionConfirmDialog';
 
 interface User {
     id: number;
@@ -35,6 +37,7 @@ interface Delivery {
 }
 
 export default function Show({ delivery, drivers = [], vehicles = [] }: { delivery: Delivery, drivers?: User[], vehicles?: Vehicle[] }) {
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const { data, setData, post, processing, errors } = useForm({
         driver_id: delivery.driver_id || '',
         vehicle_id: delivery.vehicle_id || '',
@@ -77,7 +80,7 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                             {delivery.status.replace('_', ' ').toUpperCase()}
                         </span>
                         {delivery.status === 'completed' && (
-                            <a 
+                            <a
                                 href={route('compliance.export', delivery.id)}
                                 target="_blank"
                                 rel="noreferrer"
@@ -87,6 +90,14 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                                 Export PDF
                             </a>
                         )}
+                        <button
+                            type="button"
+                            onClick={() => setDeleteConfirmOpen(true)}
+                            className="ml-3 inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-red-700 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:ring-red-600 dark:hover:bg-red-900/20"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Delete delivery
+                        </button>
                     </div>
                 </div>
 
@@ -192,12 +203,12 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                                 </div>
                             </li>
                             <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${delivery.pickup_time ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
+                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
                                     <div className="h-1.5 w-1.5 rounded-full bg-current" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Picked Up</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{delivery.pickup_time ? new Date(delivery.pickup_time).toLocaleString() : 'Pending'}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? new Date(delivery.pickup_time || delivery.chain_of_custody.pickup_time).toLocaleString() : 'Pending'}</p>
                                 </div>
                             </li>
                             <li className="flex gap-4">
@@ -237,6 +248,20 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                 )}
 
             </div>
+
+            <ActionConfirmDialog
+                open={deleteConfirmOpen}
+                onCancel={() => setDeleteConfirmOpen(false)}
+                onConfirm={() => {
+                    router.delete(route('admin.deliveries.destroy', delivery.id));
+                    setDeleteConfirmOpen(false);
+                }}
+                title="Delete this delivery?"
+                description="This will permanently remove the delivery and all related records (checklist, environment log, chain of custody). This cannot be undone."
+                confirmText="Delete delivery"
+                cancelText="Cancel"
+                variant="destructive"
+            />
         </AdminLayout>
     );
 }

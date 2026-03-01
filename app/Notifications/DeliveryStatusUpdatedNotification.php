@@ -52,12 +52,14 @@ class DeliveryStatusUpdatedNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $url = route('officer.deliveries.show', ['delivery' => $this->delivery->id]);
+
         return [
             'delivery_id' => $this->delivery->id,
             'title' => 'Delivery Status Updated',
             'message' => "Delivery #{$this->delivery->id} is now " . strtoupper($this->status),
             'type' => 'status_updated',
-            'action_url' => "/officer/deliveries/{$this->delivery->id}",
+            'action_url' => $url,
         ];
     }
 }

@@ -160,6 +160,8 @@ class DashboardController extends Controller
             'status' => $delivery->status === 'pending' ? 'assigned' : $delivery->status,
         ]);
 
+        event(new \App\Events\DeliveryUpdated($delivery->fresh()));
+
         // Notify the driver
         $driver = User::find($validated['driver_id']);
         if ($driver) {
@@ -172,5 +174,11 @@ class DashboardController extends Controller
         }
 
         return back()->with('success', 'Delivery assigned successfully.');
+    }
+
+    public function destroy(Delivery $delivery)
+    {
+        $delivery->delete();
+        return redirect()->route('admin.deliveries')->with('success', 'Delivery deleted.');
     }
 }

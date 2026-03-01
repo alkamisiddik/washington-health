@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, Check, Trash2, ExternalLink } from 'lucide-react';
-import { Link, router } from '@inertiajs/react';
+import { Bell, Check, Trash2, Package, RefreshCw, ChevronRight } from 'lucide-react';
+import { router } from '@inertiajs/react';
 import axios from 'axios';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -25,7 +25,16 @@ interface Notification {
     created_at: string;
 }
 
-const POLL_INTERVAL_MS = 15000; // 15 seconds for near real-time
+function getNotificationIcon(type: string) {
+    switch (type) {
+        case 'delivery_assigned':
+            return <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
+        case 'status_updated':
+            return <RefreshCw className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />;
+        default:
+            return <Bell className="h-4 w-4 text-muted-foreground" />;
+    }
+}
 
 interface NotificationDropdownProps {
     children?: React.ReactNode;
@@ -35,6 +44,7 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const fetchNotifications = useCallback(async () => {
         try {
@@ -48,10 +58,8 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
     }, []);
 
     useEffect(() => {
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, POLL_INTERVAL_MS);
-        return () => clearInterval(interval);
-    }, [fetchNotifications]);
+        if (dropdownOpen) fetchNotifications();
+    }, [dropdownOpen, fetchNotifications]);
 
     const markAsRead = (id: string) => {
         router.post(`/notifications/${id}/mark-read`, {}, {
@@ -75,14 +83,20 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
         });
     };
 
+    const goToDetails = (n: Notification) => {
+        if (!n.data?.action_url) return;
+        if (!n.read_at) markAsRead(n.id);
+        router.visit(n.data.action_url, { preserveScroll: true });
+    };
+
     return (
         <>
-            <DropdownMenu>
+            <DropdownMenu open={dropdownOpen} onOpenChange={(open) => { setDropdownOpen(open); }}>
                 <DropdownMenuTrigger asChild>
                     {children ? children : (
                         <button
                             type="button"
-                            className="relative flex items-center space-x-1 rounded-md px-2 text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                            className="relative flex items-center space-x-1.5 rounded-lg px-2.5 py-1.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
                             aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
                         >
                             <Bell className="h-5 w-5" />
@@ -95,9 +109,9 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
                         </button>
                     )}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[380px] p-0" sideOffset={8}>
-                    <div className="flex items-center justify-between border-b px-4 py-3">
-                        <h3 className="text-sm font-semibold">Notifications</h3>
+                <DropdownMenuContent align="end" className="w-[400px] p-0 rounded-xl shadow-lg border" sideOffset={8}>
+                    <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3 rounded-t-xl">
+                        <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
                         <div className="flex items-center gap-1">
                             {unreadCount > 0 && (
                                 <Button
@@ -106,7 +120,7 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
                                     className="h-8 text-xs"
                                     onClick={markAllAsRead}
                                 >
-                                    <Check className="mr-1 h-3.5 w-3.5" />
+                                    <Check className="mr-1.5 h-3.5 w-3.5" />
                                     Mark all read
                                 </Button>
                             )}
@@ -117,7 +131,7 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
                                     className="h-8 text-xs text-muted-foreground hover:text-destructive"
                                     onClick={() => setClearConfirmOpen(true)}
                                 >
-                                    <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                    <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                                     Clear
                                 </Button>
                             )}
@@ -149,16 +163,14 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
                                         </div>
                                         <p className="mt-1 text-sm text-foreground">{n.data.message}</p>
                                         <div className="mt-2 flex items-center justify-between gap-2">
-                                            <Link
-                                                href={n.data.action_url}
-                                                onClick={() => {
-                                                    if (!n.read_at) markAsRead(n.id);
-                                                }}
-                                                className="inline-flex items-center text-xs font-medium text-primary hover:underline"
-                                            >
-                                                View details
-                                                <ExternalLink className="ml-1 h-3 w-3" />
-                                            </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => goToDetails(n)}
+                                                    className="inline-flex items-center text-xs font-medium text-primary hover:underline"
+                                                >
+                                                    View details
+                                                    <ChevronRight className="ml-1 h-3 w-3" />
+                                                </button>
                                             {!n.read_at && (
                                                 <button
                                                     type="button"

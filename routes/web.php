@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('deliveries', [\App\Http\Controllers\Admin\DashboardController::class, 'deliveries'])->name('deliveries');
         Route::get('deliveries/{delivery}', [\App\Http\Controllers\Admin\DashboardController::class, 'show'])->name('deliveries.show');
         Route::post('deliveries/{delivery}/assign', [\App\Http\Controllers\Admin\DashboardController::class, 'assign'])->name('deliveries.assign');
+        Route::delete('deliveries/{delivery}', [\App\Http\Controllers\Admin\DashboardController::class, 'destroy'])->name('deliveries.destroy');
         Route::get('users', [\App\Http\Controllers\Admin\DashboardController::class, 'users'])->name('users');
         Route::post('users', [\App\Http\Controllers\Admin\DashboardController::class, 'storeUser'])->name('users.store');
         Route::patch('users/{user}/role', [\App\Http\Controllers\Admin\DashboardController::class, 'updateRole'])->name('users.role');
@@ -61,6 +62,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('driver')->name('driver.')->middleware('role:driver')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'driver'])->name('dashboard');
         Route::get('deliveries', [\App\Http\Controllers\Driver\DeliveryController::class, 'index'])->name('deliveries');
+        Route::get('deliveries/completed', [\App\Http\Controllers\Driver\DeliveryController::class, 'completed'])->name('deliveries.completed');
+        Route::get('deliveries/{delivery}', [\App\Http\Controllers\Driver\DeliveryController::class, 'show'])->name('deliveries.show');
         Route::post('deliveries/{delivery}/start', [\App\Http\Controllers\Driver\DeliveryController::class, 'start'])->name('deliveries.start');
         Route::post('deliveries/{delivery}/end', [\App\Http\Controllers\Driver\DeliveryController::class, 'end'])->name('deliveries.end');
         Route::post('deliveries/{delivery}/checklist', [\App\Http\Controllers\Driver\ChecklistController::class, 'store'])->name('checklist.store');

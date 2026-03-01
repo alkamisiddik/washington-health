@@ -48,7 +48,10 @@ class ChainOfCustodyController extends Controller
         );
 
         // Sync pickup_time to delivery so officer timeline "Picked Up" updates
-        if (array_key_exists('pickup_time', $validated) && $validated['pickup_time'] !== null) {
+        $coc = $delivery->fresh()->chainOfCustody;
+        if ($coc && $coc->pickup_time) {
+            $delivery->update(['pickup_time' => $coc->pickup_time]);
+        } elseif (array_key_exists('pickup_time', $validated) && $validated['pickup_time'] !== null) {
             $delivery->update(['pickup_time' => $validated['pickup_time']]);
         }
 

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { showAlert } from '@/utils/alerts';
 
 interface ChainOfCustody {
@@ -71,9 +72,9 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
         const payload = buildPayload({ is_final: isFinal });
         const options = { 
             preserveScroll: true, 
-            preserveState: true,
+            preserveState: false,
             onSuccess: () => {
-                if (isFinal) showAlert('Success', 'Delivery marked as complete!', 'success');
+                if (isFinal) showAlert('Success', 'Chain of custody marked complete!', 'success');
                 else showAlert('Saved', 'Chain of custody data saved', 'success');
             }
         };
@@ -87,7 +88,11 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
 
     const saveSignatureToServer = (overrides: Partial<typeof data>) => {
         const payload = buildPayload(overrides);
-        router.post(route('coc.store', delivery.id), payload, { preserveScroll: true, preserveState: true });
+        router.post(route('coc.store', delivery.id), payload, {
+            preserveScroll: true,
+            preserveState: false,
+            onSuccess: () => showAlert('Saved', 'Signature and time saved', 'success'),
+        });
     };
 
     let effectiveReadOnly = readOnly;
@@ -170,19 +175,17 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <Label>Pickup Time</Label>
-                        <Input
-                            type="datetime-local"
+                        <DateTimePicker
                             value={data.pickup_time}
-                            onChange={e => setData('pickup_time', e.target.value)}
+                            onChange={e => setData('pickup_time', e)}
                             readOnly={effectiveReadOnly}
                         />
                     </div>
                     <div className="space-y-1.5">
                         <Label>Delivery Time</Label>
-                        <Input
-                            type="datetime-local"
+                        <DateTimePicker
                             value={data.delivery_time}
-                            onChange={e => setData('delivery_time', e.target.value)}
+                            onChange={e => setData('delivery_time', e)}
                             readOnly={effectiveReadOnly}
                         />
                     </div>
@@ -244,23 +247,29 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
                 </div>
 
                 {(!isComplete && !effectiveReadOnly) && (
-                    <div className="pt-3 flex items-center gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={(e) => submit(e, false)}
-                            disabled={processing}
-                        >
-                            Save Progress
-                        </Button>
-                        <Button
-                            type="button"
-                            onClick={(e) => submit(e, true)}
-                            disabled={processing || !data.driver_signature || !data.receiver_signature}
-                            className="bg-indigo-600 hover:bg-indigo-700"
-                        >
-                            Mark Complete
-                        </Button>
+                    <div className="pt-3 space-y-2">
+                        <p className="text-xs text-muted-foreground">
+                            <strong>Save Progress</strong> saves your work. <strong>Mark Complete</strong> finalizes the chain of custody and requires both driver and receiver signatures above.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={(e) => submit(e, false)}
+                                disabled={processing}
+                            >
+                                Save Progress
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={(e) => submit(e, true)}
+                                disabled={processing || !data.driver_signature || !data.receiver_signature}
+                                title={(!data.driver_signature || !data.receiver_signature) ? 'Add both signatures above to enable' : ''}
+                                className="bg-indigo-600 hover:bg-indigo-700"
+                            >
+                                Mark Complete
+                            </Button>
+                        </div>
                     </div>
                 )}
             </form>

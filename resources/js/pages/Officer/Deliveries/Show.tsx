@@ -161,12 +161,12 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                                 </div>
                             </li>
                             <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${delivery.pickup_time ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
+                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
                                     <div className="h-1.5 w-1.5 rounded-full bg-current" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Picked Up</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{delivery.pickup_time ? new Date(delivery.pickup_time).toLocaleString() : 'Pending'}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? new Date(delivery.pickup_time || delivery.chain_of_custody.pickup_time).toLocaleString() : 'Pending'}</p>
                                 </div>
                             </li>
                             <li className="flex gap-4">

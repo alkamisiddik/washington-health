@@ -5,11 +5,12 @@ import { usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { LayoutGrid, Truck } from 'lucide-react';
+import { LayoutGrid, Truck, CheckCircle2 } from 'lucide-react';
 
 const driverNavItems = [
     { title: "Dashboard", href: "/driver/dashboard", icon: LayoutGrid },
     { title: "My Deliveries", href: "/driver/deliveries", icon: Truck },
+    { title: "Completed", href: "/driver/deliveries/completed", icon: CheckCircle2 },
 ];
 
 export default function DriverLayout({ children, breadcrumbs }) {

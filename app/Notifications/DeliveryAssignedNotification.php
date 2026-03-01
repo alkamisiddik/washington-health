@@ -52,12 +52,14 @@ class DeliveryAssignedNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $url = route('driver.deliveries.show', ['delivery' => $this->delivery->id]);
+
         return [
             'delivery_id' => $this->delivery->id,
             'title' => 'New Delivery Assigned',
             'message' => "You have been assigned a new delivery from {$this->delivery->pickup_location} to {$this->delivery->delivery_location}.",
             'type' => 'delivery_assigned',
-            'action_url' => "/driver/deliveries/{$this->delivery->id}",
+            'action_url' => $url,
         ];
     }
 }

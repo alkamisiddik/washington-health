@@ -103,7 +103,14 @@ export default function Create({ drivers = [], vehicles = [] }: { drivers?: any[
                             <DateTimePicker
                                 value={data.scheduled_time}
                                 onChange={(v) => setData('scheduled_time', v)}
+                                placeholder="Select date and time"
+                            />
+                            <input
+                                type="hidden"
+                                value={data.scheduled_time}
+                                onChange={() => {}}
                                 required
+                                id="scheduled_time"
                             />
                             {errors.scheduled_time && <p className="text-sm text-destructive">{errors.scheduled_time}</p>}
                         </div>

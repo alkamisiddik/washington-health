@@ -24,10 +24,63 @@ export default function SignaturePad({ label, onSave, existingSignature, readOnl
         e.stopPropagation();
         const pad = padRef.current;
         if (!pad) return;
+
         try {
             if (pad.isEmpty()) return;
-            const canvas = pad.getTrimmedCanvas();
-            if (!canvas) return;
+
+            // Workaround for getTrimmedCanvas() failure in Vite/ESM environments
+            // due to trim-canvas library import issues.
+            let canvas = pad.getCanvas();
+
+            // Simple manual trim logic
+            const context = canvas.getContext('2d');
+            if (context) {
+                const width = canvas.width;
+                const height = canvas.height;
+                const imageData = context.getImageData(0, 0, width, height);
+                const data = imageData.data;
+
+                let top = -1,
+                    bottom = -1,
+                    left = -1,
+                    right = -1;
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const alpha = data[(y * width + x) * 4 + 3];
+                        if (alpha > 0) {
+                            if (top === -1) top = y;
+                            bottom = y;
+                            if (left === -1 || x < left) left = x;
+                            if (right === -1 || x > right) right = x;
+                        }
+                    }
+                }
+
+                if (top !== -1) {
+                    const trimmedWidth = right - left + 1;
+                    const trimmedHeight = bottom - top + 1;
+                    const trimmedCanvas = document.createElement('canvas');
+                    trimmedCanvas.width = trimmedWidth;
+                    trimmedCanvas.height = trimmedHeight;
+                    const trimmedContext = trimmedCanvas.getContext('2d');
+                    if (trimmedContext) {
+                        trimmedContext.drawImage(
+                            canvas,
+                            left,
+                            top,
+                            trimmedWidth,
+                            trimmedHeight,
+                            0,
+                            0,
+                            trimmedWidth,
+                            trimmedHeight,
+                        );
+                        canvas = trimmedCanvas;
+                    }
+                }
+            }
+
             const dataURL = canvas.toDataURL('image/png');
             if (!dataURL || dataURL.length < 100) return;
             const signedAt = new Date().toISOString();

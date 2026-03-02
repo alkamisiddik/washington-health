@@ -48,34 +48,33 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
 
     const isComplete = coc && coc.driver_signature && coc.receiver_signature;
 
-    const buildPayload = (overrides: Partial<typeof data> = {}) => ({
-        container_ids: data.container_ids,
-        condition: data.condition,
-        pickup_department: data.pickup_department,
-        delivery_department: data.delivery_department,
-        pickup_time: data.pickup_time || null,
-        delivery_time: data.delivery_time || null,
-        driver_signature: data.driver_signature,
-        driver_signed_at: data.driver_signed_at || null,
-        receiver_signature: data.receiver_signature,
-        receiver_signed_at: data.receiver_signed_at || null,
-        exceptions: data.exceptions,
-        is_final: false,
-        ...overrides,
-    });
 
     const submit = (e: React.FormEvent, isFinal = false) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        const payload = buildPayload({ is_final: isFinal });
+
+        // Deep copy data and handle nulls for dates
+        const payload = {
+            ...data,
+            pickup_time: data.pickup_time || null,
+            delivery_time: data.delivery_time || null,
+            driver_signed_at: data.driver_signed_at || null,
+            receiver_signed_at: data.receiver_signed_at || null,
+            is_final: isFinal,
+        };
+
         const options = { 
             preserveScroll: true, 
-            preserveState: false,
+            preserveState: true,
             onSuccess: () => {
                 if (isFinal) showAlert('Success', 'Chain of custody marked complete!', 'success');
                 else showAlert('Saved', 'Chain of custody data saved', 'success');
+            },
+            onError: (err: any) => {
+                console.error('Submit failed:', err);
+                showAlert('Error', 'Failed to save data. Please check required fields.', 'error');
             }
         };
 
@@ -86,19 +85,44 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
         }
     };
 
-    const saveSignatureToServer = (overrides: Partial<typeof data>) => {
-        const payload = buildPayload(overrides);
+    const saveSignatureToServer = (nextData: typeof data, clearedPad: 'driver' | 'receiver' | null = null) => {
+        const payload = {
+            ...nextData,
+            pickup_time: nextData.pickup_time || null,
+            delivery_time: nextData.delivery_time || null,
+            driver_signed_at: nextData.driver_signed_at || null,
+            receiver_signed_at: nextData.receiver_signed_at || null,
+            is_final: false,
+        };
+
         router.post(route('coc.store', delivery.id), payload, {
             preserveScroll: true,
-            preserveState: false,
-            onSuccess: () => showAlert('Saved', 'Signature and time saved', 'success'),
+            preserveState: true,
+            onSuccess: () => {
+                if (clearedPad) {
+                    showAlert('Cleared', `Signature removed`, 'success');
+                } else {
+                    showAlert('Saved', 'Signature and time saved', 'success');
+                }
+            },
+            onError: (err: any) => {
+                console.error('Signature save failed:', err);
+                showAlert('Error', 'Failed to save signature. Please check your connection.', 'error');
+            }
         });
     };
 
-    let effectiveReadOnly = readOnly;
-    if (isComplete && !readOnly) {
-         effectiveReadOnly = true;
-    }
+    const getNowFormatted = () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    const effectiveReadOnly = readOnly;
 
     return (
         <div className="mt-4 border-t border-gray-100 pt-4 dark:border-gray-700">
@@ -196,20 +220,16 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
                         label="Driver Signature" 
                         existingSignature={data.driver_signature}
                         onSave={(val, signedAt) => {
-                            setData('driver_signature', val);
-                            setData('driver_signed_at', signedAt ?? '');
-                            if (val && signedAt) {
-                                const now = new Date().toISOString().slice(0, 16);
-                                const pTime = data.pickup_time || now;
-                                setData('pickup_time', pTime);
-                                saveSignatureToServer({
-                                    driver_signature: val,
-                                    driver_signed_at: signedAt,
-                                    pickup_time: pTime,
-                                });
-                            } else {
-                                saveSignatureToServer({ driver_signature: '', driver_signed_at: '' });
-                            }
+                            console.log(val, signedAt);
+                            const newPickupTime = val ? getNowFormatted() : '';
+                            const nextState = { 
+                                ...data, 
+                                driver_signature: val, 
+                                driver_signed_at: signedAt ?? '',
+                                pickup_time: newPickupTime
+                            };
+                            setData(nextState);
+                            saveSignatureToServer(nextState, val ? null : 'driver');
                         }}
                         readOnly={effectiveReadOnly}
                     />
@@ -217,20 +237,15 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
                         label="Receiver Signature" 
                         existingSignature={data.receiver_signature}
                         onSave={(val, signedAt) => {
-                            setData('receiver_signature', val);
-                            setData('receiver_signed_at', signedAt ?? '');
-                            if (val && signedAt) {
-                                const now = new Date().toISOString().slice(0, 16);
-                                const dTime = data.delivery_time || now;
-                                setData('delivery_time', dTime);
-                                saveSignatureToServer({
-                                    receiver_signature: val,
-                                    receiver_signed_at: signedAt,
-                                    delivery_time: dTime,
-                                });
-                            } else {
-                                saveSignatureToServer({ receiver_signature: '', receiver_signed_at: '' });
-                            }
+                            const newDeliveryTime = val ? getNowFormatted() : '';
+                            const nextState = { 
+                                ...data, 
+                                receiver_signature: val, 
+                                receiver_signed_at: signedAt ?? '',
+                                delivery_time: newDeliveryTime
+                            };
+                            setData(nextState);
+                            saveSignatureToServer(nextState, val ? null : 'receiver');
                         }}
                         readOnly={effectiveReadOnly}
                     />
@@ -246,7 +261,7 @@ export default function ChainOfCustodyForm({ delivery, coc, readOnly = false }: 
                     />
                 </div>
 
-                {(!isComplete && !effectiveReadOnly) && (
+                {!effectiveReadOnly && (
                     <div className="pt-3 space-y-2">
                         <p className="text-xs text-muted-foreground">
                             <strong>Save Progress</strong> saves your work. <strong>Mark Complete</strong> finalizes the chain of custody and requires both driver and receiver signatures above.

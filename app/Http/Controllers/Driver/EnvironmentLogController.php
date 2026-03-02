@@ -55,6 +55,8 @@ class EnvironmentLogController extends Controller
             $validated
         );
 
+        event(new \App\Events\DeliveryUpdated($delivery->fresh()));
+
         return back()->with('success', 'Environment log saved');
     }
 

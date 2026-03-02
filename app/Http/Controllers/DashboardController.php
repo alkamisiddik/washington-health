@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $stats = [
             'total_requests' => \App\Models\Delivery::where('requested_by', auth()->id())->count(),
             'pending' => \App\Models\Delivery::where('requested_by', auth()->id())->where('status', 'pending')->count(),
-            'in_progress' => \App\Models\Delivery::where('requested_by', auth()->id())->where('status', 'in_progress')->count(),
+            'in_progress' => \App\Models\Delivery::where('requested_by', auth()->id())->whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
             'completed' => \App\Models\Delivery::where('requested_by', auth()->id())->where('status', 'completed')->count(),
         ];
 
@@ -38,7 +38,7 @@ class DashboardController extends Controller
             'assigned_today' => \App\Models\Delivery::where('driver_id', auth()->id())
                                 ->whereDate('scheduled_time', now()->toDateString())
                                 ->count(),
-            'in_progress' => \App\Models\Delivery::where('driver_id', auth()->id())->where('status', 'in_progress')->count(),
+            'in_progress' => \App\Models\Delivery::where('driver_id', auth()->id())->whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
             'completed_all' => \App\Models\Delivery::where('driver_id', auth()->id())->where('status', 'completed')->count(),
         ];
 

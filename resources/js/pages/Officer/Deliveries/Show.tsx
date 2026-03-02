@@ -20,7 +20,9 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
         switch (status) {
             case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
             case 'assigned': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-            case 'in_progress': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+            case 'picked_up': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
+            case 'in_transit':
+            case 'in_progress': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
             case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
         }
@@ -57,7 +59,7 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                     </div>
                 </div>
 
-                {['pending', 'assigned', 'in_progress'].includes(delivery.status) && (
+                {['pending', 'assigned', 'picked_up', 'in_transit', 'in_progress'].includes(delivery.status) && (
                     <div className="rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                             {delivery.status === 'pending' ? 'Assign Driver & Vehicle' : 'Change Driver or Vehicle'}

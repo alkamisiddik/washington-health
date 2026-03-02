@@ -33,6 +33,14 @@ class ChainOfCustodyController extends Controller
 
         $validated = $request->validate($rules);
 
+        // Auto-fill times based on signatures if not provided
+        if (!empty($validated['driver_signature']) && empty($validated['pickup_time'])) {
+            $validated['pickup_time'] = now();
+        }
+        if (!empty($validated['receiver_signature']) && empty($validated['delivery_time'])) {
+            $validated['delivery_time'] = now();
+        }
+
         if ($request->get('is_final')) {
             $request->validate([
                 'driver_signature' => 'required|string',
@@ -47,14 +55,34 @@ class ChainOfCustodyController extends Controller
             $validated
         );
 
-        // Sync pickup_time to delivery so officer timeline "Picked Up" updates
+        // Sync times to delivery so officer timeline and duration calculations work
         $coc = $delivery->fresh()->chainOfCustody;
-        if ($coc && $coc->pickup_time) {
-            $delivery->update(['pickup_time' => $coc->pickup_time]);
-        } elseif (array_key_exists('pickup_time', $validated) && $validated['pickup_time'] !== null) {
-            $delivery->update(['pickup_time' => $validated['pickup_time']]);
+        $deliveryUpdates = [];
+        
+        if ($coc->pickup_time) {
+            $deliveryUpdates['pickup_time'] = $coc->pickup_time;
+        }
+        
+        if ($coc->delivery_time) {
+            $deliveryUpdates['end_time'] = $coc->delivery_time;
+            
+            // If we have end_time and start_time, calculate duration
+            if ($delivery->start_time) {
+                $deliveryUpdates['duration_minutes'] = $delivery->start_time->diffInMinutes($coc->delivery_time);
+            }
         }
 
+        if (!empty($deliveryUpdates)) {
+            $delivery->update($deliveryUpdates);
+        }
+
+        event(new \App\Events\DeliveryUpdated($delivery->fresh()));
+
         return back()->with('success', 'Chain of custody saved');
+    }
+
+    public function update(Request $request, Delivery $delivery)
+    {
+        return $this->store($request, $delivery);
     }
 }

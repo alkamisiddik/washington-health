@@ -1,6 +1,6 @@
 import DriverLayout from '@/layouts/DriverLayout';
 import { Head, router, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ArrowRight, Package, Calendar, Truck, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import ElapsedTimer from '@/components/ElapsedTimer';
 import ChecklistForm from '@/components/ChecklistForm';
@@ -13,6 +13,8 @@ function getStatusColor(status: string) {
     switch (status) {
         case 'pending': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 ring-amber-600/20';
         case 'assigned': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 ring-blue-600/20';
+        case 'picked_up': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 ring-amber-600/20';
+        case 'in_transit':
         case 'in_progress': return 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200 ring-violet-600/20';
         case 'completed': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 ring-emerald-600/20';
         default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
@@ -22,6 +24,8 @@ function getStatusColor(status: string) {
 function getStatusIcon(status: string) {
     switch (status) {
         case 'assigned': return <AlertCircle className="h-4 w-4" />;
+        case 'picked_up': return <Package className="h-4 w-4" />;
+        case 'in_transit':
         case 'in_progress': return <Clock className="h-4 w-4" />;
         case 'completed': return <CheckCircle2 className="h-4 w-4" />;
         default: return <Package className="h-4 w-4" />;
@@ -38,6 +42,10 @@ interface DeliveryCardProps {
 }
 
 function DeliveryCard({ delivery, hasInProgress, canStartDelivery, onStartClick, onEndClick, onChecklistCompleteChange }: DeliveryCardProps) {
+    const handleChecklistChange = useCallback((complete: boolean) => {
+        onChecklistCompleteChange(delivery.id, complete);
+    }, [delivery.id, onChecklistCompleteChange]);
+
     return (
         <article className="group relative flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50">
             {/* Card header with status */}
@@ -95,22 +103,22 @@ function DeliveryCard({ delivery, hasInProgress, canStartDelivery, onStartClick,
                         key={delivery.id}
                         delivery={delivery}
                         checklist={delivery.checklist}
-                        onAllCompleteChange={(complete) => onChecklistCompleteChange(delivery.id, complete)}
+                        onAllCompleteChange={handleChecklistChange}
                     />
                 </div>
             )}
 
-            {/* Env + CoC (in progress / completed) */}
-            {(delivery.status === 'in_progress' || delivery.status === 'completed') && (
+            {/* Env + CoC (in transit / completed) */}
+            {(delivery.status === 'in_transit' || delivery.status === 'in_progress' || delivery.status === 'completed') && (
                 <div className="border-t border-gray-100 px-5 py-4 dark:border-gray-700 space-y-4">
-                    <EnvironmentForm delivery={delivery} envLog={delivery.environment_log} readOnly={delivery.status === 'completed'} />
-                    <ChainOfCustodyForm delivery={delivery} coc={delivery.chain_of_custody} readOnly={delivery.status === 'completed'} />
+                    <EnvironmentForm delivery={delivery} envLog={delivery.environmentLog} readOnly={delivery.status === 'completed'} />
+                    <ChainOfCustodyForm delivery={delivery} coc={delivery.chainOfCustody} readOnly={delivery.status === 'completed'} />
                 </div>
             )}
 
             {/* Actions footer */}
             <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 bg-gray-50/50 px-5 py-4 dark:border-gray-700 dark:bg-gray-800/30">
-                {delivery.status === 'assigned' && (
+                {(delivery.status === 'assigned' || delivery.status === 'picked_up') && (
                     <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
                         <Button
                             onClick={() => onStartClick(delivery.id)}
@@ -121,13 +129,13 @@ function DeliveryCard({ delivery, hasInProgress, canStartDelivery, onStartClick,
                         </Button>
                         {hasInProgress ? (
                             <span className="text-xs text-amber-600 dark:text-amber-400">Finish your current delivery before starting another.</span>
-                        ) : !canStartDelivery(delivery) && (
+                        ) : (delivery.status === 'assigned' && !canStartDelivery(delivery)) && (
                             <span className="text-xs text-muted-foreground">Complete all checklist items above (and click Save Checklist to store)</span>
                         )}
                     </div>
                 )}
 
-                {delivery.status === 'in_progress' && (
+                {(delivery.status === 'in_transit' || delivery.status === 'in_progress') && (
                     <>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Clock className="h-4 w-4" />
@@ -158,20 +166,31 @@ function DeliveryCard({ delivery, hasInProgress, canStartDelivery, onStartClick,
     );
 }
 
+const CHECKLIST_KEYS = ['vehicle_clean', 'hvac_running', 'logger_active', 'separation_verified', 'containers_sealed', 'logs_completed', 'chain_of_custody_signed'] as const;
+
 export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
     const [startConfirm, setStartConfirm] = useState<number | null>(null);
     const [endConfirm, setEndConfirm] = useState<number | null>(null);
     const [clientChecklistComplete, setClientChecklistComplete] = useState<Record<number, boolean>>({});
+    const [isStarting, setIsStarting] = useState(false);
+    const [isEnding, setIsEnding] = useState(false);
 
-    const hasInProgress = deliveries.some(d => d.status === 'in_progress');
-    const actionRequired = deliveries.filter(d => ['assigned', 'in_progress'].includes(d.status));
+    const hasInProgress = deliveries.some(d => d.status === 'in_transit' || d.status === 'in_progress');
+    const actionRequired = deliveries.filter(d => ['assigned', 'picked_up', 'in_transit', 'in_progress'].includes(d.status));
     const others = deliveries.filter(d => ['pending'].includes(d.status));
 
-    const CHECKLIST_KEYS = ['vehicle_clean', 'hvac_running', 'logger_active', 'separation_verified', 'containers_sealed', 'logs_completed', 'chain_of_custody_signed'] as const;
-    const isChecklistComplete = (d: { checklist?: Record<string, unknown> | null }) =>
-        !!d.checklist && CHECKLIST_KEYS.every(k => !!d.checklist![k]);
-    const canStartDelivery = (d: { id: number; checklist?: Record<string, unknown> | null }) =>
-        isChecklistComplete(d) || !!clientChecklistComplete[d.id];
+    const isChecklistComplete = useCallback((d: { checklist?: Record<string, unknown> | null }) =>
+        !!d.checklist && CHECKLIST_KEYS.every(k => !!d.checklist![k]), []);
+
+    const canStartDelivery = useCallback((d: { id: number; checklist?: Record<string, unknown> | null }) =>
+        isChecklistComplete(d) || !!clientChecklistComplete[d.id], [clientChecklistComplete, isChecklistComplete]);
+
+    const handleChecklistCompleteChange = useCallback((deliveryId: number, complete: boolean) => {
+        setClientChecklistComplete(prev => {
+            if (prev[deliveryId] === complete) return prev;
+            return { ...prev, [deliveryId]: complete };
+        });
+    }, []);
 
     return (
         <DriverLayout breadcrumbs={[{ title: 'My Deliveries', href: '/driver/deliveries' }]}>
@@ -215,11 +234,18 @@ export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
                         <ActionConfirmDialog
                             open={startConfirm !== null}
                             onCancel={() => setStartConfirm(null)}
+                            isLoading={isStarting}
                             onConfirm={() => {
                                 const id = startConfirm;
-                                setStartConfirm(null);
                                 if (id != null) {
-                                    router.post(route('driver.deliveries.start', { delivery: id }), {}, { preserveScroll: true });
+                                    router.post(route('driver.deliveries.start', { delivery: id }), {}, { 
+                                        preserveScroll: true,
+                                        onStart: () => setIsStarting(true),
+                                        onFinish: () => {
+                                            setIsStarting(false);
+                                            setStartConfirm(null);
+                                        }
+                                    });
                                 }
                             }}
                             title="Start this delivery?"
@@ -229,11 +255,18 @@ export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
                         <ActionConfirmDialog
                             open={endConfirm !== null}
                             onCancel={() => setEndConfirm(null)}
+                            isLoading={isEnding}
                             onConfirm={() => {
                                 const id = endConfirm;
-                                setEndConfirm(null);
                                 if (id != null) {
-                                    router.post(route('driver.deliveries.end', { delivery: id }), {}, { preserveScroll: true });
+                                    router.post(route('driver.deliveries.end', { delivery: id }), {}, { 
+                                        preserveScroll: true,
+                                        onStart: () => setIsEnding(true),
+                                        onFinish: () => {
+                                            setIsEnding(false);
+                                            setEndConfirm(null);
+                                        }
+                                    });
                                 }
                             }}
                             title="End this delivery?"
@@ -257,7 +290,7 @@ export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
                                             canStartDelivery={canStartDelivery}
                                             onStartClick={setStartConfirm}
                                             onEndClick={setEndConfirm}
-                                            onChecklistCompleteChange={(deliveryId, complete) => setClientChecklistComplete(prev => ({ ...prev, [deliveryId]: complete }))}
+                                            onChecklistCompleteChange={handleChecklistCompleteChange}
                                         />
                                     ))}
                                 </div>
@@ -276,7 +309,7 @@ export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
                                             canStartDelivery={canStartDelivery}
                                             onStartClick={setStartConfirm}
                                             onEndClick={setEndConfirm}
-                                            onChecklistCompleteChange={(deliveryId, complete) => setClientChecklistComplete(prev => ({ ...prev, [deliveryId]: complete }))}
+                                            onChecklistCompleteChange={handleChecklistCompleteChange}
                                         />
                                     ))}
                                 </div>

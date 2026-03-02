@@ -15,7 +15,9 @@ export default function Index({ deliveries, filters }: { deliveries: any, filter
         switch (status) {
             case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
             case 'assigned': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-            case 'in_progress': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+            case 'picked_up': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
+            case 'in_transit':
+            case 'in_progress': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
             case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
         }
@@ -48,13 +50,14 @@ export default function Index({ deliveries, filters }: { deliveries: any, filter
                             <option value="all">All</option>
                             <option value="pending">Pending</option>
                             <option value="assigned">Assigned</option>
-                            <option value="in_progress">In Progress</option>
+                            <option value="picked_up">Picked Up</option>
+                            <option value="in_transit">In Transit</option>
                             <option value="completed">Completed</option>
                         </select>
                     </div>
                     <div className="hidden sm:block">
                         <nav className="flex space-x-4 border-b border-gray-200 dark:border-gray-700" aria-label="Tabs">
-                            {['all', 'pending', 'assigned', 'in_progress', 'completed'].map((status) => (
+                            {['all', 'pending', 'assigned', 'picked_up', 'in_transit', 'completed'].map((status) => (
                                 <button
                                     key={status}
                                     onClick={() => handleFilterChange({ target: { value: status } } as any)}
@@ -64,7 +67,7 @@ export default function Index({ deliveries, filters }: { deliveries: any, filter
                                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
                                     }`}
                                 >
-                                    {status === 'in_progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
+                                    {status === 'in_transit' ? 'In Transit' : status === 'picked_up' ? 'Picked Up' : status.charAt(0).toUpperCase() + status.slice(1)}
                                 </button>
                             ))}
                         </nav>

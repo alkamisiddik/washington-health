@@ -76,6 +76,8 @@ class DeliveryController extends Controller
             }
         }
 
+        event(new \App\Events\DeliveryUpdated($delivery->fresh()));
+
         return redirect()->route('officer.deliveries.index')->with('success', 'Delivery created successfully.');
     }
 

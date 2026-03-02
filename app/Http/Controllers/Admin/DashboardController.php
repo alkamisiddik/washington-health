@@ -17,7 +17,7 @@ class DashboardController extends Controller
 
         $stats = [
             'total_today' => Delivery::whereDate('scheduled_time', $today)->count(),
-            'in_progress' => Delivery::where('status', 'in_progress')->count(),
+            'in_progress' => Delivery::whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
             'completed_today' => Delivery::where('status', 'completed')->whereDate('end_time', $today)->count(),
             'pending' => Delivery::where('status', 'pending')->count(),
         ];
@@ -53,7 +53,7 @@ class DashboardController extends Controller
         $totalDeliveries = Delivery::count();
         $completedDeliveries = Delivery::where('status', 'completed')->count();
         $pendingDeliveries = Delivery::where('status', 'pending')->count();
-        $inProgressDeliveries = Delivery::where('status', 'in_progress')->count();
+        $inProgressDeliveries = Delivery::whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count();
 
         $deliveriesByDriver = User::where('role', 'driver')
             ->withCount('deliveriesAsDriver')

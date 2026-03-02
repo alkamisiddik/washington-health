@@ -14,7 +14,9 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
-    server: '0.0.0.0',
+    server: {
+        host: '0.0.0.0',
+    },
     esbuild: {
         jsx: 'automatic',
     },
@@ -22,5 +24,8 @@ export default defineConfig({
         alias: {
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
+    },
+    optimizeDeps: {
+        include: ['react-signature-canvas', 'trim-canvas'],
     },
 });

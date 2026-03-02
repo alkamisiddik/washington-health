@@ -60,14 +60,15 @@ export default function DriverDashboard({ stats, recent_deliveries }: any) {
                                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{delivery.pickup_location} → {delivery.delivery_location}</td>
                                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{delivery.officer?.name || 'System'}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                                                delivery.status === 'assigned' ? 'bg-blue-100 text-blue-700' :
-                                                delivery.status === 'in_progress' ? 'bg-indigo-100 text-indigo-700' :
-                                                delivery.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                            }`}>
-                                                {delivery.status.toUpperCase()}
-                                            </span>
-                                        </td>
+                                             <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                                                 delivery.status === 'assigned' ? 'bg-blue-100 text-blue-700' :
+                                                 delivery.status === 'picked_up' ? 'bg-amber-100 text-amber-700' :
+                                                 delivery.status === 'in_transit' || delivery.status === 'in_progress' ? 'bg-indigo-100 text-indigo-700' :
+                                                 delivery.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                             }`}>
+                                                 {delivery.status.replace('_', ' ').toUpperCase()}
+                                             </span>
+                                         </td>
                                     </tr>
                                 )) : (
                                     <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No active routes assigned.</td></tr>

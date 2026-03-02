@@ -109,7 +109,7 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
                         </button>
                     )}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[400px] p-0 rounded-xl shadow-lg border" sideOffset={8}>
+                <DropdownMenuContent align="end" className="w-[400px] p-0 rounded-xl shadow-lg border" sideOffset={18}>
                     <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3 rounded-t-xl">
                         <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
                         <div className="flex items-center gap-1">

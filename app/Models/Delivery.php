@@ -57,4 +57,40 @@ class Delivery extends Model
     {
         return $this->hasOne(ChainOfCustody::class);
     }
+
+    /**
+     * Check if the given driver is already assigned to another delivery at the same scheduled time.
+     */
+    public static function hasDriverConflict(int $driverId, $scheduledTime, ?int $excludeDeliveryId = null): bool
+    {
+        $start = \Carbon\Carbon::parse($scheduledTime)->startOfMinute();
+        $end = \Carbon\Carbon::parse($scheduledTime)->endOfMinute();
+
+        $query = static::where('driver_id', $driverId)
+            ->whereBetween('scheduled_time', [$start, $end]);
+
+        if ($excludeDeliveryId !== null) {
+            $query->where('id', '!=', $excludeDeliveryId);
+        }
+
+        return $query->exists();
+    }
+
+    /**
+     * Check if the given vehicle is already assigned to another delivery at the same scheduled time.
+     */
+    public static function hasVehicleConflict(int $vehicleId, $scheduledTime, ?int $excludeDeliveryId = null): bool
+    {
+        $start = \Carbon\Carbon::parse($scheduledTime)->startOfMinute();
+        $end = \Carbon\Carbon::parse($scheduledTime)->endOfMinute();
+
+        $query = static::where('vehicle_id', $vehicleId)
+            ->whereBetween('scheduled_time', [$start, $end]);
+
+        if ($excludeDeliveryId !== null) {
+            $query->where('id', '!=', $excludeDeliveryId);
+        }
+
+        return $query->exists();
+    }
 }

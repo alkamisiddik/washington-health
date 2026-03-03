@@ -154,6 +154,18 @@ class DashboardController extends Controller
             'vehicle_id' => ['required', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('status', 'active')],
         ]);
 
+        if (Delivery::hasDriverConflict($validated['driver_id'], $delivery->scheduled_time, $delivery->id)) {
+            return redirect()->back()->withErrors([
+                'driver_id' => 'This driver is already assigned to another delivery at the selected time.',
+            ])->withInput();
+        }
+
+        if (Delivery::hasVehicleConflict($validated['vehicle_id'], $delivery->scheduled_time, $delivery->id)) {
+            return redirect()->back()->withErrors([
+                'vehicle_id' => 'This vehicle is already assigned to another delivery at the selected time.',
+            ])->withInput();
+        }
+
         $delivery->update([
             'driver_id' => $validated['driver_id'],
             'vehicle_id' => $validated['vehicle_id'],
@@ -178,7 +190,9 @@ class DashboardController extends Controller
 
     public function destroy(Delivery $delivery)
     {
+        $deliveryId = $delivery->id;
         $delivery->delete();
+        event(new \App\Events\DeliveryDeleted($deliveryId));
         return redirect()->route('admin.deliveries')->with('success', 'Delivery deleted.');
     }
 }

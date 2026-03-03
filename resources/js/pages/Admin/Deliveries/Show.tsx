@@ -104,6 +104,12 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                 {delivery.status !== 'completed' && (
                     <div className="rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Assign Driver & Vehicle</h2>
+                        {(errors.driver_id || errors.vehicle_id) && (
+                            <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-800 dark:text-red-200">
+                                {errors.driver_id && <p>{errors.driver_id}</p>}
+                                {errors.vehicle_id && <p>{errors.vehicle_id}</p>}
+                            </div>
+                        )}
                         <form onSubmit={submitAssign} className="flex flex-col gap-4 sm:flex-row sm:items-end">
                             <div className="flex-1">
                                 <label htmlFor="driver_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Driver</label>

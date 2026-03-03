@@ -28,13 +28,10 @@ class ChecklistController extends Controller
             $validated
         );
 
-        // If all checklist items are checked, update status to 'picked_up'
+        // Optional: record pickup_time when checklist is fully completed (status stays 'assigned' until Start)
         $allChecked = !in_array(false, array_values($validated), true);
-        if ($allChecked && $delivery->status === 'assigned') {
-            $delivery->update([
-                'status' => 'picked_up',
-                'pickup_time' => now()
-            ]);
+        if ($allChecked && $delivery->status === 'assigned' && !$delivery->pickup_time) {
+            $delivery->update(['pickup_time' => now()]);
         }
 
         event(new \App\Events\DeliveryUpdated($delivery->fresh()));

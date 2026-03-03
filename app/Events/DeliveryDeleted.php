@@ -2,19 +2,18 @@
 
 namespace App\Events;
 
-use App\Models\Delivery;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class DeliveryUpdated implements ShouldBroadcastNow
+class DeliveryDeleted implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public Delivery $delivery
+        public int $deliveryId
     ) {}
 
     public function broadcastOn(): array
@@ -26,14 +25,13 @@ class DeliveryUpdated implements ShouldBroadcastNow
 
     public function broadcastAs(): string
     {
-        return 'delivery.updated';
+        return 'delivery.deleted';
     }
 
     public function broadcastWith(): array
     {
         return [
-            'delivery_id' => $this->delivery->id,
-            'status' => $this->delivery->status,
+            'delivery_id' => $this->deliveryId,
         ];
     }
 }

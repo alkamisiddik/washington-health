@@ -32,6 +32,40 @@ function getStatusIcon(status: string) {
     }
 }
 
+/** Group deliveries by date for clear sections (Today, Tomorrow, or date string). */
+function groupDeliveriesByDate(deliveries: { scheduled_time: string }[]) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const byDate = new Map<string, { dateLabel: string; dateKey: string; deliveries: typeof deliveries }>();
+
+    const sorted = [...deliveries].sort(
+        (a, b) => new Date(a.scheduled_time).getTime() - new Date(b.scheduled_time).getTime()
+    );
+
+    for (const d of sorted) {
+        const dt = new Date(d.scheduled_time);
+        const dDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+        let dateKey = dDate.toISOString().slice(0, 10);
+        let dateLabel: string;
+        if (dDate.getTime() === today.getTime()) {
+            dateLabel = 'Today';
+        } else if (dDate.getTime() === tomorrow.getTime()) {
+            dateLabel = 'Tomorrow';
+        } else {
+            dateLabel = dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: dt.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
+        }
+        if (!byDate.has(dateKey)) {
+            byDate.set(dateKey, { dateLabel, dateKey, deliveries: [] });
+        }
+        byDate.get(dateKey)!.deliveries.push(d);
+    }
+
+    return Array.from(byDate.values());
+}
+
 interface DeliveryCardProps {
     delivery: any;
     hasInProgress: boolean;
@@ -46,11 +80,19 @@ function DeliveryCard({ delivery, hasInProgress, canStartDelivery, onStartClick,
         onChecklistCompleteChange(delivery.id, complete);
     }, [delivery.id, onChecklistCompleteChange]);
 
+    const scheduled = new Date(delivery.scheduled_time);
+    const timeStr = scheduled.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const dateStr = scheduled.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
     return (
-        <article className="group relative flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50">
-            {/* Card header with status */}
-            <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-700">
-                <div className="flex items-center gap-2">
+        <article className="group relative flex flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800/50 overflow-hidden">
+            {/* Time + status header row */}
+            <div className="flex items-stretch border-b border-gray-100 dark:border-gray-700">
+                <div className="flex flex-col justify-center bg-gray-50 dark:bg-gray-800/80 px-4 py-3 min-w-[5.5rem] border-r border-gray-100 dark:border-gray-700">
+                    <span className="text-lg font-semibold tabular-nums text-foreground leading-tight">{timeStr}</span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5">{dateStr}</span>
+                </div>
+                <div className="flex flex-1 items-center justify-between gap-3 px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${getStatusColor(delivery.status)}`}>
                         {getStatusIcon(delivery.status)}
                         {delivery.status.replace('_', ' ').toUpperCase()}
@@ -75,12 +117,8 @@ function DeliveryCard({ delivery, hasInProgress, canStartDelivery, onStartClick,
                     </div>
                 </div>
 
-                {/* Meta row */}
+                {/* Meta row: vehicle, duration */}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {new Date(delivery.scheduled_time).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                    </span>
                     {delivery.vehicle && (
                         <span className="inline-flex items-center gap-1.5">
                             <Truck className="h-3.5 w-3.5" />
@@ -177,7 +215,7 @@ export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
 
     const hasInProgress = deliveries.some(d => d.status === 'in_transit' || d.status === 'in_progress');
     const actionRequired = deliveries.filter(d => ['assigned', 'picked_up', 'in_transit', 'in_progress'].includes(d.status));
-    const others = deliveries.filter(d => ['pending'].includes(d.status));
+    const groupedByDate = groupDeliveriesByDate(deliveries);
 
     const isChecklistComplete = useCallback((d: { checklist?: Record<string, unknown> | null }) =>
         !!d.checklist && CHECKLIST_KEYS.every(k => !!d.checklist![k]), []);
@@ -275,44 +313,29 @@ export default function MyDeliveries({ deliveries }: { deliveries: any[] }) {
                             variant="destructive"
                         />
 
-                        {actionRequired.length > 0 && (
-                            <section>
-                                <h2 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
-                                    <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" aria-hidden />
-                                    Action required
-                                </h2>
-                                <div className="grid gap-5 sm:grid-cols-2">
-                                    {actionRequired.map(d => (
-                                        <DeliveryCard
-                                            key={d.id}
-                                            delivery={d}
-                                            hasInProgress={hasInProgress}
-                                            canStartDelivery={canStartDelivery}
-                                            onStartClick={setStartConfirm}
-                                            onEndClick={setEndConfirm}
-                                            onChecklistCompleteChange={handleChecklistCompleteChange}
-                                        />
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {others.length > 0 && (
-                            <section>
-                                <h2 className="text-base font-semibold text-foreground mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">Other</h2>
-                                <div className="grid gap-5 sm:grid-cols-2">
-                                    {others.map(d => (
-                                        <DeliveryCard
-                                            key={d.id}
-                                            delivery={d}
-                                            hasInProgress={hasInProgress}
-                                            canStartDelivery={canStartDelivery}
-                                            onStartClick={setStartConfirm}
-                                            onEndClick={setEndConfirm}
-                                            onChecklistCompleteChange={handleChecklistCompleteChange}
-                                        />
-                                    ))}
-                                </div>
+                        {groupedByDate.length > 0 && (
+                            <section className="space-y-8">
+                                {groupedByDate.map(({ dateLabel, dateKey, deliveries: groupItems }) => (
+                                    <div key={dateKey}>
+                                        <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                                            <Calendar className="h-4 w-4" />
+                                            {dateLabel}
+                                        </h2>
+                                        <div className="space-y-4">
+                                            {groupItems.map((d: any) => (
+                                                <DeliveryCard
+                                                    key={d.id}
+                                                    delivery={d}
+                                                    hasInProgress={hasInProgress}
+                                                    canStartDelivery={canStartDelivery}
+                                                    onStartClick={setStartConfirm}
+                                                    onEndClick={setEndConfirm}
+                                                    onChecklistCompleteChange={handleChecklistCompleteChange}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
                             </section>
                         )}
 

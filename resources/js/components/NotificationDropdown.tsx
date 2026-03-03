@@ -61,6 +61,13 @@ export default function NotificationDropdown({ children }: NotificationDropdownP
         if (dropdownOpen) fetchNotifications();
     }, [dropdownOpen, fetchNotifications]);
 
+    // Real-time: when a new notification is pushed (Reverb), refetch so count and list stay in sync
+    useEffect(() => {
+        const onNotification = () => fetchNotifications();
+        window.addEventListener('notification-received', onNotification);
+        return () => window.removeEventListener('notification-received', onNotification);
+    }, [fetchNotifications]);
+
     const markAsRead = (id: string) => {
         router.post(`/notifications/${id}/mark-read`, {}, {
             preserveScroll: true,

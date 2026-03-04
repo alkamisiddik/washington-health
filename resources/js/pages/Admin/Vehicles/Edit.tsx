@@ -1,22 +1,37 @@
 import AdminLayout from '@/layouts/AdminLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { ActionConfirmDialog } from '@/components/ActionConfirmDialog';
+import { useState } from 'react';
 
-export default function Edit({ vehicle }) {
+interface Vehicle {
+    id: number;
+    vehicle_number: string;
+    description: string;
+    status: string;
+}
+
+export default function Edit({ vehicle }: { vehicle: Vehicle }) {
+    const [deactivateOpen, setDeactivateOpen] = useState(false);
     const { data, setData, put, processing, errors } = useForm({
         vehicle_number: vehicle.vehicle_number || '',
         description: vehicle.description || '',
         status: vehicle.status || 'active',
     });
 
-    const submit = (e) => {
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('admin.vehicles.update', vehicle.id));
-    };
-
-    const deactivate = () => {
-        if (confirm('Are you sure you want to deactivate this vehicle?')) {
-            router.delete(route('admin.vehicles.destroy', vehicle.id));
-        }
     };
 
     return (
@@ -29,81 +44,79 @@ export default function Edit({ vehicle }) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Edit Vehicle</h1>
                     {vehicle.status !== 'inactive' && (
-                        <button
-                            onClick={deactivate}
-                            className="inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700"
-                        >
+                        <Button variant="destructive" onClick={() => setDeactivateOpen(true)}>
                             Deactivate
-                        </button>
+                        </Button>
                     )}
                 </div>
 
                 <div className="mt-4 max-w-2xl rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                     <form onSubmit={submit} className="space-y-6">
-                        <div>
-                            <label htmlFor="vehicle_number" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Vehicle Number <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
+                        <div className="space-y-2">
+                            <Label htmlFor="vehicle_number">
+                                Vehicle Number <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
                                 id="vehicle_number"
                                 value={data.vehicle_number}
                                 onChange={(e) => setData('vehicle_number', e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
                                 required
                             />
-                            {errors.vehicle_number && <div className="mt-1 text-sm text-red-600">{errors.vehicle_number}</div>}
+                            {errors.vehicle_number && <p className="text-sm text-destructive">{errors.vehicle_number}</p>}
                         </div>
 
-                        <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Description
-                            </label>
-                            <textarea
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
                                 id="description"
                                 rows={3}
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
+                                className="resize-none"
                             />
-                            {errors.description && <div className="mt-1 text-sm text-red-600">{errors.description}</div>}
+                            {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
                         </div>
 
-                        <div>
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Status
-                            </label>
-                            <select
-                                id="status"
-                                value={data.status}
-                                onChange={(e) => setData('status', e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
-                            >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="maintenance">Maintenance</option>
-                            </select>
-                            {errors.status && <div className="mt-1 text-sm text-red-600">{errors.status}</div>}
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Select value={data.status} onValueChange={v => setData('status', v)}>
+                                <SelectTrigger id="status">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.status && <p className="text-sm text-destructive">{errors.status}</p>}
                         </div>
 
                         <div className="flex justify-end gap-3">
-                            <Link
-                                href={route('admin.vehicles.index')}
-                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
-                            >
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-                            >
+                            <Button type="button" variant="outline" asChild>
+                                <Link href={route('admin.vehicles.index')}>Cancel</Link>
+                            </Button>
+                            <Button type="submit" disabled={processing}>
                                 Update Vehicle
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 </div>
             </div>
+
+            <ActionConfirmDialog
+                open={deactivateOpen}
+                onCancel={() => setDeactivateOpen(false)}
+                onConfirm={() => {
+                    router.delete(route('admin.vehicles.destroy', vehicle.id));
+                    setDeactivateOpen(false);
+                }}
+                title="Deactivate this vehicle?"
+                description="This will mark the vehicle as inactive and it will no longer be available for new deliveries."
+                confirmText="Deactivate"
+                cancelText="Cancel"
+                variant="destructive"
+            />
         </AdminLayout>
     );
 }

@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
         Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         Route::get('deliveries', [\App\Http\Controllers\Admin\DashboardController::class, 'deliveries'])->name('deliveries');
+        Route::get('deliveries/export', [\App\Http\Controllers\Admin\DashboardController::class, 'exportDeliveriesCsv'])->name('deliveries.export');
         Route::get('deliveries/{delivery}', [\App\Http\Controllers\Admin\DashboardController::class, 'show'])->name('deliveries.show');
         Route::post('deliveries/{delivery}/assign', [\App\Http\Controllers\Admin\DashboardController::class, 'assign'])->name('deliveries.assign');
         Route::delete('deliveries/{delivery}', [\App\Http\Controllers\Admin\DashboardController::class, 'destroy'])->name('deliveries.destroy');
@@ -44,6 +45,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('users', [\App\Http\Controllers\Admin\DashboardController::class, 'storeUser'])->name('users.store');
         Route::patch('users/{user}/role', [\App\Http\Controllers\Admin\DashboardController::class, 'updateRole'])->name('users.role');
         Route::get('reports', [\App\Http\Controllers\Admin\DashboardController::class, 'reports'])->name('reports');
+        Route::get('reports/chain-of-custody-log', [\App\Http\Controllers\Admin\DashboardController::class, 'chainOfCustodyLog'])->name('reports.coc-log');
+        Route::get('reports/vehicle-inspection-log', [\App\Http\Controllers\Admin\DashboardController::class, 'vehicleInspectionLog'])->name('reports.vehicle-log');
         Route::resource('vehicles', \App\Http\Controllers\Admin\VehicleController::class);
     });
 

@@ -4,6 +4,16 @@ import { useState } from 'react';
 import { FileText, Trash2 } from 'lucide-react';
 import ChainOfCustodyForm from '@/components/ChainOfCustodyForm';
 import { ActionConfirmDialog } from '@/components/ActionConfirmDialog';
+import DeliveryTimeline from '@/components/DeliveryTimeline';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface User {
     id: number;
@@ -111,46 +121,44 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
                             </div>
                         )}
                         <form onSubmit={submitAssign} className="flex flex-col gap-4 sm:flex-row sm:items-end">
-                            <div className="flex-1">
-                                <label htmlFor="driver_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Driver</label>
-                                <select
-                                    id="driver_id"
-                                    value={data.driver_id}
-                                    onChange={(e) => setData('driver_id', e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
-                                    required
+                            <div className="flex-1 space-y-1">
+                                <Label htmlFor="driver_id">Driver</Label>
+                                <Select
+                                    value={data.driver_id ? String(data.driver_id) : ''}
+                                    onValueChange={v => setData('driver_id', v)}
                                 >
-                                    <option value="">Select a driver...</option>
-                                    {drivers.map(d => (
-                                        <option key={d.id} value={d.id}>{d.name}</option>
-                                    ))}
-                                </select>
-                                {errors.driver_id && <p className="mt-1 text-sm text-red-600">{errors.driver_id}</p>}
+                                    <SelectTrigger id="driver_id">
+                                        <SelectValue placeholder="Select a driver..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {drivers.map(d => (
+                                            <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.driver_id && <p className="text-sm text-destructive">{errors.driver_id}</p>}
                             </div>
-                            <div className="flex-1">
-                                <label htmlFor="vehicle_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Vehicle</label>
-                                <select
-                                    id="vehicle_id"
-                                    value={data.vehicle_id}
-                                    onChange={(e) => setData('vehicle_id', e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100"
-                                    required
+                            <div className="flex-1 space-y-1">
+                                <Label htmlFor="vehicle_id">Vehicle</Label>
+                                <Select
+                                    value={data.vehicle_id ? String(data.vehicle_id) : ''}
+                                    onValueChange={v => setData('vehicle_id', v)}
                                 >
-                                    <option value="">Select a vehicle...</option>
-                                    {vehicles.map(v => (
-                                        <option key={v.id} value={v.id}>{v.vehicle_number} - {v.description}</option>
-                                    ))}
-                                </select>
-                                {errors.vehicle_id && <p className="mt-1 text-sm text-red-600">{errors.vehicle_id}</p>}
+                                    <SelectTrigger id="vehicle_id">
+                                        <SelectValue placeholder="Select a vehicle..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {vehicles.map(v => (
+                                            <SelectItem key={v.id} value={String(v.id)}>{v.vehicle_number} – {v.description}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.vehicle_id && <p className="text-sm text-destructive">{errors.vehicle_id}</p>}
                             </div>
                             <div>
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-                                >
+                                <Button type="submit" disabled={processing}>
                                     {delivery.status === 'pending' ? 'Assign' : 'Update Assignment'}
-                                </button>
+                                </Button>
                             </div>
                         </form>
                     </div>
@@ -197,47 +205,10 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
 
                     {/* Timeline Card */}
                     <div className="rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Timeline</h2>
-                        <ul className="space-y-4">
-                            <li className="flex gap-4">
-                                <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Requested</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(delivery.created_at).toLocaleString()}</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Picked Up</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? new Date(delivery.pickup_time || delivery.chain_of_custody.pickup_time).toLocaleString() : 'Pending'}</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${delivery.start_time ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">In Transit</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{delivery.start_time ? new Date(delivery.start_time).toLocaleString() : 'Pending'}</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${delivery.end_time ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Delivered</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{delivery.end_time ? new Date(delivery.end_time).toLocaleString() : 'Pending'}</p>
-                                </div>
-                            </li>
-                        </ul>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-5">Delivery Timeline</h2>
+                        <DeliveryTimeline delivery={delivery} />
                         {delivery.duration_minutes && (
-                            <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+                            <div className="mt-2 border-t border-gray-100 dark:border-gray-700 pt-4">
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Duration: <span className="font-medium text-gray-900 dark:text-gray-100">{delivery.duration_minutes} minutes</span></p>
                             </div>
                         )}

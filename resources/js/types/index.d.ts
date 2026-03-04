@@ -36,6 +36,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    role: string;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;
@@ -43,50 +44,117 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export type CartType = {
-  id: string;
-  name: string;
-  drawerConfig: string[];
-};
 
-export type Cart = {
-  id: string;
-  cartTypeId: string;
-  cartNumber: string;
-  location: string;
-  qrCode: string;
-  mediLock: boolean;
-  supplyLock: boolean;
-  lastChecked: string;
-  drawers: Drawer[];
-};
+export interface Vehicle {
+    id: number;
+    vehicle_number: string;
+    description: string | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+}
 
-export type Drawer = {
-  id: string;
-  cartId: string;
-  name: string;
-  equipment: Equipment[];
-};
+export interface DriverChecklist {
+    id: number;
+    delivery_id: number;
+    vehicle_clean: boolean;
+    hvac_running: boolean;
+    logger_active: boolean;
+    separation_verified: boolean;
+    containers_sealed: boolean;
+    logs_completed: boolean;
+    chain_of_custody_signed: boolean;
+    created_at: string;
+    updated_at: string;
+    delivery?: Delivery;
+}
 
-export type Equipment = {
-  id: string;
-  drawerId: string;
-  name: string;
-  quantity: number;
-  expiryDate: string;
-  lastUpdated: string;
-};
+export interface EnvironmentLog {
+    id: number;
+    delivery_id: number;
+    start_temp: number | null;
+    start_humidity: number | null;
+    mid_temp: number | null;
+    mid_humidity: number | null;
+    end_temp: number | null;
+    end_humidity: number | null;
+    extra_logs: Record<string, unknown>[] | null;
+    start_in_range: boolean;
+    mid_in_range: boolean;
+    end_in_range: boolean;
+    corrective_action: string | null;
+    created_at: string;
+    updated_at: string;
+    delivery?: Delivery;
+}
 
-export type LocationSummary = {
-  location: string;
-  count: number;
-};
+export interface ChainOfCustody {
+    id: number;
+    delivery_id: number;
+    container_ids: string | null;
+    condition: string | null;
+    pickup_department: string | null;
+    delivery_department: string | null;
+    pickup_time: string | null;
+    delivery_time: string | null;
+    driver_signature: string | null;
+    driver_signed_at: string | null;
+    receiver_signature: string | null;
+    receiver_signed_at: string | null;
+    exceptions: string | null;
+    created_at: string;
+    updated_at: string;
+    delivery?: Delivery;
+}
 
-export type ExpiryAlert = {
-  cartId: string;
-  cartNumber: string;
-  location: string;
-  equipmentName: string;
-  expiryDate: string;
-  daysRemaining: number;
-};
+export interface Delivery {
+    id: number;
+    requested_by: number;
+    driver_id: number | null;
+    vehicle_id: number | null;
+    pickup_location: string;
+    delivery_location: string;
+    scheduled_time: string;
+    pickup_time: string | null;
+    start_time: string | null;
+    end_time: string | null;
+    duration_minutes: number | null;
+    status: string;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+
+    officer?: User;
+    driver?: User;
+    vehicle?: Vehicle;
+    checklist?: DriverChecklist;
+    environment_log?: EnvironmentLog;
+    chain_of_custody?: ChainOfCustody;
+}
+
+export interface AppNotification {
+    id: string;
+    type: string;
+    notifiable_type: string;
+    notifiable_id: number;
+    data: Record<string, unknown>;
+    read_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaginatedData<T> {
+    current_page: number;
+    data: T[];
+    first_page_url: string;
+    from: number | null;
+    last_page: number;
+    last_page_url: string;
+    links: { url: string | null; label: string; active: boolean }[];
+    next_page_url: string | null;
+    path: string;
+    per_page: number;
+    prev_page_url: string | null;
+    to: number | null;
+    total: number;
+}

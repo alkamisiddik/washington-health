@@ -26,7 +26,9 @@ class DeliveryController extends Controller
             $query->where('status', $status);
         }
 
-        $deliveries = $query->orderBy('scheduled_time', 'asc')->paginate(15)->withQueryString();
+        $deliveries = $query->orderBy('status', 'asc')
+                            ->orderBy('scheduled_time', 'asc')
+                            ->paginate(16)->withQueryString();
 
         return Inertia::render('Officer/Deliveries/Index', [
             'deliveries' => $deliveries,
@@ -55,8 +57,8 @@ class DeliveryController extends Controller
             'delivery_location' => 'required|string|max:255',
             'scheduled_time' => 'required|date',
             'notes' => 'nullable|string',
-            'driver_id' => ['nullable', \Illuminate\Validation\Rule::exists('users', 'id')->where('role', 'driver')],
-            'vehicle_id' => ['nullable', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('status', 'active')],
+            'driver_id' => ['nullable', Rule::exists('users', 'id')->where('role', 'driver')],
+            'vehicle_id' => ['nullable', Rule::exists('vehicles', 'id')->where('status', 'active')],
         ]);
 
         if (!empty($validated['driver_id']) && Delivery::hasDriverConflict($validated['driver_id'], $validated['scheduled_time'], null)) {
@@ -121,8 +123,8 @@ class DeliveryController extends Controller
         }
 
         $validated = $request->validate([
-            'driver_id' => ['required', \Illuminate\Validation\Rule::exists('users', 'id')->where('role', 'driver')],
-            'vehicle_id' => ['required', \Illuminate\Validation\Rule::exists('vehicles', 'id')->where('status', 'active')],
+            'driver_id' => ['required', Rule::exists('users', 'id')->where('role', 'driver')],
+            'vehicle_id' => ['required', Rule::exists('vehicles', 'id')->where('status', 'active')],
         ]);
 
         if (Delivery::hasDriverConflict($validated['driver_id'], $delivery->scheduled_time, $delivery->id)) {

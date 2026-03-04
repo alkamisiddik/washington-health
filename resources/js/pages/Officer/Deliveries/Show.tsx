@@ -2,6 +2,7 @@ import OfficerLayout from '@/layouts/OfficerLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { FileText } from 'lucide-react';
 import ChainOfCustodyForm from '@/components/ChainOfCustodyForm';
+import DeliveryTimeline from '@/components/DeliveryTimeline';
 
 export default function Show({ delivery, drivers = [], vehicles = [] }: { delivery: any, drivers?: any[], vehicles?: any[] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -157,47 +158,10 @@ export default function Show({ delivery, drivers = [], vehicles = [] }: { delive
 
                     {/* Timeline Card */}
                     <div className="rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Timeline</h2>
-                        <ul className="space-y-4">
-                            <li className="flex gap-4">
-                                <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Requested</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(delivery.created_at).toLocaleString()}</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Picked Up</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{(delivery.pickup_time || delivery.chain_of_custody?.pickup_time) ? new Date(delivery.pickup_time || delivery.chain_of_custody.pickup_time).toLocaleString() : 'Pending'}</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${delivery.start_time ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">In Transit</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{delivery.start_time ? new Date(delivery.start_time).toLocaleString() : 'Pending'}</p>
-                                </div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${delivery.end_time ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'}`}>
-                                    <div className="h-1.5 w-1.5 rounded-full bg-current" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Delivered</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{delivery.end_time ? new Date(delivery.end_time).toLocaleString() : 'Pending'}</p>
-                                </div>
-                            </li>
-                        </ul>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-5">Delivery Timeline</h2>
+                        <DeliveryTimeline delivery={delivery} />
                         {delivery.duration_minutes && (
-                            <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+                            <div className="mt-2 border-t border-gray-100 dark:border-gray-700 pt-4">
                                 <p className="text-sm text-gray-500 dark:text-gray-400">Total Duration: <span className="font-medium text-gray-900 dark:text-gray-100">{delivery.duration_minutes} minutes</span></p>
                             </div>
                         )}

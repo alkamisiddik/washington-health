@@ -1,15 +1,15 @@
 import AdminLayout from '@/layouts/AdminLayout';
 import { Head, Link } from '@inertiajs/react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
-import { Package, Truck, Clock, CheckCircle, Car } from 'lucide-react';
+import { Package, Truck, Clock, CheckCircle, Car, ClipboardList, ShieldCheck } from 'lucide-react';
 
 interface ReportProps {
     totalDeliveries: number;
     completedDeliveries: number;
     pendingDeliveries: number;
     inProgressDeliveries: number;
-    deliveriesByDriver: any[];
-    recentCompleted: any[];
+    deliveriesByDriver: { id: number; name: string; deliveries_as_driver_count: number }[];
+    recentCompleted: { id: number; pickup_location: string; delivery_location: string; driver?: { name: string }; end_time: string }[];
 }
 
 export default function Index({
@@ -20,7 +20,7 @@ export default function Index({
     deliveriesByDriver,
     recentCompleted
 }: ReportProps) {
-    
+
     const statusData = [
         { name: 'Completed', value: completedDeliveries, color: '#10b981' },
         { name: 'In Progress', value: inProgressDeliveries, color: '#8b5cf6' },
@@ -34,7 +34,7 @@ export default function Index({
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">System Reports</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Overview of delivery system statistics and driver performance.</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Overview of delivery system statistics, driver performance, and compliance logs.</p>
                     </div>
                 </div>
 
@@ -51,7 +51,7 @@ export default function Index({
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                         <div className="flex items-center gap-4">
                             <div className="rounded-md bg-green-50 p-3 dark:bg-green-900/50">
@@ -63,7 +63,7 @@ export default function Index({
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                         <div className="flex items-center gap-4">
                             <div className="rounded-md bg-purple-50 p-3 dark:bg-purple-900/50">
@@ -86,6 +86,41 @@ export default function Index({
                                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{pendingDeliveries}</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {/* Compliance Log Reports */}
+                <div>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">Compliance Log Reports</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Link href={route('admin.reports.coc-log')}
+                            className="group rounded-xl border bg-white p-5 shadow-sm dark:bg-gray-800 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-md transition-all flex items-start gap-4">
+                            <div className="rounded-lg bg-indigo-50 dark:bg-indigo-900/40 p-3 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/60 transition-colors flex-shrink-0">
+                                <ClipboardList className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
+                                    Instrument Chain-of-Custody Log
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                    Container transfers, department records, seal status & driver/receiver signatures. Filter by date range or driver.
+                                </p>
+                            </div>
+                        </Link>
+                        <Link href={route('admin.reports.vehicle-log')}
+                            className="group rounded-xl border bg-white p-5 shadow-sm dark:bg-gray-800 dark:border-gray-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:shadow-md transition-all flex items-start gap-4">
+                            <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/40 p-3 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/60 transition-colors flex-shrink-0">
+                                <ShieldCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                                    Daily Vehicle Cleaning & Inspection Log
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                    Pre-trip checklist records — vehicle cleanliness, PPE, cargo separation & contamination status.
+                                </p>
+                            </div>
+                        </Link>
                     </div>
                 </div>
 
@@ -128,7 +163,7 @@ export default function Index({
                         </div>
                         <div className="flex-1 overflow-y-auto p-0">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-50 text-xs font-medium uppercase text-gray-500 dark:bg-gray-800/50 dark:text-gray-400 stick top-0">
+                                <thead className="bg-gray-50 text-xs font-medium uppercase text-gray-500 dark:bg-gray-800/50 dark:text-gray-400 sticky top-0">
                                     <tr>
                                         <th className="px-6 py-3">Driver Name</th>
                                         <th className="px-6 py-3 text-right">Completed Deliveries</th>

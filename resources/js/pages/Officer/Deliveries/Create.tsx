@@ -12,8 +12,9 @@ import {
 } from '@/components/ui/select';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { Textarea } from '@/components/ui/textarea';
+import { User, Vehicle } from '@/types';
 
-export default function Create({ drivers = [], vehicles = [] }: { drivers?: any[], vehicles?: any[] }) {
+export default function Create({ drivers = [], vehicles = [] }: { drivers?: User[], vehicles?: Vehicle[] }) {
     const { data, setData, post, processing, errors } = useForm({
         pickup_location: '',
         delivery_location: '',
@@ -56,7 +57,7 @@ export default function Create({ drivers = [], vehicles = [] }: { drivers?: any[
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Do not assign yet</SelectItem>
-                                        {drivers.map((d: any) => (
+                                        {drivers.map((d: User) => (
                                             <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -71,7 +72,7 @@ export default function Create({ drivers = [], vehicles = [] }: { drivers?: any[
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Do not assign yet</SelectItem>
-                                        {vehicles.map((v: any) => (
+                                        {vehicles.map((v: Vehicle) => (
                                             <SelectItem key={v.id} value={String(v.id)}>{v.vehicle_number} – {v.description}</SelectItem>
                                         ))}
                                     </SelectContent>

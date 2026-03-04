@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Delivery;
 
 class DashboardController extends Controller
 {
@@ -17,13 +18,13 @@ class DashboardController extends Controller
         $today = now()->startOfDay();
         
         $stats = [
-            'total_requests' => \App\Models\Delivery::where('requested_by', auth()->id())->count(),
-            'pending' => \App\Models\Delivery::where('requested_by', auth()->id())->where('status', 'pending')->count(),
-            'in_progress' => \App\Models\Delivery::where('requested_by', auth()->id())->whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
-            'completed' => \App\Models\Delivery::where('requested_by', auth()->id())->where('status', 'completed')->count(),
+            'total_requests' => Delivery::where('requested_by', auth()->id())->count(),
+            'pending' => Delivery::where('requested_by', auth()->id())->where('status', 'pending')->count(),
+            'in_progress' => Delivery::where('requested_by', auth()->id())->whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
+            'completed' => Delivery::where('requested_by', auth()->id())->where('status', 'completed')->count(),
         ];
 
-        $recent_deliveries = \App\Models\Delivery::with(['driver', 'vehicle'])
+        $recent_deliveries = Delivery::with(['driver', 'vehicle'])
             ->where('requested_by', auth()->id())
             ->latest()
             ->take(5)
@@ -35,14 +36,14 @@ class DashboardController extends Controller
     public function driver(Request $request)
     {
         $stats = [
-            'assigned_today' => \App\Models\Delivery::where('driver_id', auth()->id())
+            'assigned_today' => Delivery::where('driver_id', auth()->id())
                                 ->whereDate('scheduled_time', now()->toDateString())
                                 ->count(),
-            'in_progress' => \App\Models\Delivery::where('driver_id', auth()->id())->whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
-            'completed_all' => \App\Models\Delivery::where('driver_id', auth()->id())->where('status', 'completed')->count(),
+            'in_progress' => Delivery::where('driver_id', auth()->id())->whereIn('status', ['assigned', 'picked_up', 'in_transit', 'in_progress'])->count(),
+            'completed_all' => Delivery::where('driver_id', auth()->id())->where('status', 'completed')->count(),
         ];
 
-        $recent_deliveries = \App\Models\Delivery::with(['officer', 'vehicle'])
+        $recent_deliveries = Delivery::with(['officer', 'vehicle'])
             ->where('driver_id', auth()->id())
             ->latest()
             ->take(5)

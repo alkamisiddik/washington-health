@@ -5,6 +5,7 @@ import ElapsedTimer from '@/components/ElapsedTimer';
 import ChecklistForm from '@/components/ChecklistForm';
 import EnvironmentForm from '@/components/EnvironmentForm';
 import ChainOfCustodyForm from '@/components/ChainOfCustodyForm';
+import DeliveryTimeline from '@/components/DeliveryTimeline';
 import { Button } from '@/components/ui/button';
 
 export default function DeliveryShow({ delivery }: { delivery: any }) {
@@ -94,6 +95,12 @@ export default function DeliveryShow({ delivery }: { delivery: any }) {
                             <ChainOfCustodyForm delivery={delivery} coc={delivery.chain_of_custody} readOnly={delivery.status === 'completed'} />
                         </>
                     )}
+
+                    {/* Timeline */}
+                    <div className="mt-6 border-t dark:border-gray-700 pt-6">
+                        <h3 className="text-base font-semibold text-foreground mb-4">Delivery Timeline</h3>
+                        <DeliveryTimeline delivery={delivery} />
+                    </div>
 
                     <div className="mt-6 pt-4 border-t dark:border-gray-700">
                         <Button variant="outline" asChild>

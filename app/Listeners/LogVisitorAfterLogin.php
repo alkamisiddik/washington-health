@@ -15,16 +15,6 @@ class LogVisitorAfterLogin
      */
     public function handle(Login $event): void
     {
-        $user = $event->user;
-
-        $location = geoip()->getLocation(Request::ip());
-
-        VisitorLog::create([
-            'ip' => Request::ip(),
-            'location' => $location->city . ', ' . $location->country,
-            'date' => Carbon::now()->toDateString(),
-            'time' => Carbon::now()->toTimeString(),
-            'user_id' => $user->id,
-        ]);
+        
     }
 }

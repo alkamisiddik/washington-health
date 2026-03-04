@@ -1,12 +1,14 @@
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import OfficerLayout from '@/layouts/OfficerLayout';
+import { Delivery, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Index({ deliveries, filters }: { deliveries: any, filters: any }) {
+export default function Index({ deliveries, filters }: { deliveries: PaginatedData<Delivery>, filters: { status: string } }) {
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
 
-    const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newStatus = e.target.value;
+    const handleFilterChange = (newStatus: string) => {
         setStatusFilter(newStatus);
         router.get(route('officer.deliveries.index'), { status: newStatus }, { preserveState: true });
     };
@@ -37,45 +39,42 @@ export default function Index({ deliveries, filters }: { deliveries: any, filter
                     </Link>
                 </div>
 
-                <div className="mb-4">
-                    <div className="sm:hidden">
-                        <label htmlFor="tabs" className="sr-only">Select a status</label>
-                        <select
-                            id="tabs"
-                            name="tabs"
-                            className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                            value={statusFilter}
-                            onChange={handleFilterChange}
-                        >
-                            <option value="all">All</option>
-                            <option value="pending">Pending</option>
-                            <option value="assigned">Assigned</option>
-                            <option value="picked_up">Picked Up</option>
-                            <option value="in_transit">In Transit</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                    <div className="hidden sm:block">
-                        <nav className="flex space-x-4 border-b border-gray-200 dark:border-gray-700" aria-label="Tabs">
-                            {['all', 'pending', 'assigned', 'picked_up', 'in_transit', 'completed'].map((status) => (
-                                <button
-                                    key={status}
-                                    onClick={() => handleFilterChange({ target: { value: status } } as any)}
-                                    className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
-                                        statusFilter === status
-                                            ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
-                                    }`}
-                                >
-                                    {status === 'in_transit' ? 'In Transit' : status === 'picked_up' ? 'Picked Up' : status.charAt(0).toUpperCase() + status.slice(1)}
-                                </button>
-                            ))}
-                        </nav>
-                    </div>
+                <div className="sm:hidden">
+                    <Label htmlFor="tabs" className="sr-only">Select a status</Label>
+                    <Select value={statusFilter} onValueChange={(v) => handleFilterChange(v)}>
+                        <SelectTrigger id="tabs">
+                            <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="assigned">Assigned</SelectItem>
+                            <SelectItem value="picked_up">Picked Up</SelectItem>
+                            <SelectItem value="in_transit">In Transit</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="hidden sm:block">
+                    <nav className="flex space-x-4 border-b border-gray-200 dark:border-gray-700" aria-label="Tabs">
+                        {['all', 'pending', 'assigned', 'picked_up', 'in_transit', 'completed'].map((status) => (
+                            <button
+                                key={status}
+                                onClick={() => handleFilterChange(status)}
+                                className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm ${
+                                    statusFilter === status
+                                        ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-600'
+                                }`}
+                            >
+                                {status === 'in_transit' ? 'In Transit' : status === 'picked_up' ? 'Picked Up' : status.charAt(0).toUpperCase() + status.slice(1)}
+                            </button>
+                        ))}
+                    </nav>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {deliveries.data.map((delivery: any) => (
+                    {deliveries.data.map((delivery: Delivery) => (
                         <div key={delivery.id} className="relative flex flex-col overflow-hidden rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                             <div className="mb-4 flex items-start justify-between">
                                 <div className="flex items-center gap-2">

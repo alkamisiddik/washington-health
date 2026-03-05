@@ -1,14 +1,34 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import DriverLayout from '@/layouts/DriverLayout';
+import { DashboardProps } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { CheckCircle, Navigation, Truck } from 'lucide-react';
 
-export default function DriverDashboard({ stats, recent_deliveries }: any) {
+export default function DriverDashboard({ stats, recent_deliveries }: DashboardProps) {
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'pending':
+                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200 ring-yellow-600/20';
+            case 'assigned':
+                return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 ring-blue-600/20';
+            case 'picked_up':
+                return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 ring-amber-600/20';
+            case 'in_transit':
+            case 'in_progress':
+                return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200 ring-indigo-600/20';
+            case 'completed':
+                return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 ring-green-600/20';
+            default:
+                return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 ring-gray-600/20';
+        }
+    };
+
     return (
         <DriverLayout breadcrumbs={[{ title: 'Driver Dashboard', href: '/driver/dashboard' }]}>
             <Head title="Driver Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 lg:p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 lg:p-6">
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Driver Dashboard</h1>
-                <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div className="rounded-xl border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div className="flex items-center gap-4">
                             <div className="rounded-md bg-indigo-50 p-3 dark:bg-indigo-900/50">
@@ -44,7 +64,7 @@ export default function DriverDashboard({ stats, recent_deliveries }: any) {
                     </div>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div className="overflow-hidden rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">My Recent Routes</h2>
                         <Link href="/driver/deliveries" className="cursor-pointer text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
@@ -52,52 +72,68 @@ export default function DriverDashboard({ stats, recent_deliveries }: any) {
                         </Link>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-gray-50 dark:bg-gray-800/50">
-                                <tr>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">ID</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Route</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Assigned By</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {recent_deliveries?.length > 0 ? (
-                                    recent_deliveries.map((delivery: any) => (
-                                        <tr key={delivery.id}>
-                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">#{delivery.id}</td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                                {delivery.pickup_location} → {delivery.delivery_location}
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{delivery.officer?.name || 'System'}</td>
-                                            <td className="px-6 py-4">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-indigo-100 hover:bg-indigo-100 dark:bg-indigo-900/50 dark:hover:bg-indigo-900/50">
+                                    <TableHead>ID</TableHead>
+                                    <TableHead>Route (Pickup → Delivery)</TableHead>
+                                    <TableHead>Driver</TableHead>
+                                    <TableHead>Vehicle</TableHead>
+                                    <TableHead>Duration</TableHead>
+                                    <TableHead>Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+
+                            <TableBody>
+                                {recent_deliveries.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center font-medium text-muted-foreground">
+                                            No recent deliveries found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    recent_deliveries.map((delivery) => (
+                                        <TableRow key={delivery.id} className="hover:bg-muted/50">
+                                            <TableCell className="font-medium">
+                                                <Link href={`/driver/deliveries/${delivery.id}`} className="hover:underline">
+                                                    #{delivery.id}
+                                                </Link>
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.pickup_location}
+                                                <span className="mx-1 text-muted-foreground/50">→</span>
+                                                {delivery.delivery_location}
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.driver?.name ?? <span className="text-muted-foreground/60 italic">Unassigned</span>}
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.vehicle?.vehicle_number ?? (
+                                                    <span className="text-muted-foreground/60 italic">Unassigned</span>
+                                                )}
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.duration_minutes ? `${delivery.duration_minutes} min` : '-'}
+                                            </TableCell>
+
+                                            <TableCell>
                                                 <span
-                                                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                                                        delivery.status === 'assigned'
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : delivery.status === 'picked_up'
-                                                              ? 'bg-amber-100 text-amber-700'
-                                                              : delivery.status === 'in_transit' || delivery.status === 'in_progress'
-                                                                ? 'bg-indigo-100 text-indigo-700'
-                                                                : delivery.status === 'completed'
-                                                                  ? 'bg-green-100 text-green-700'
-                                                                  : 'bg-gray-100 text-gray-700'
-                                                    }`}
+                                                    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusColor(
+                                                        delivery.status,
+                                                    )}`}
                                                 >
                                                     {delivery.status.replace('_', ' ').toUpperCase()}
                                                 </span>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                            No active routes assigned.
-                                        </td>
-                                    </tr>
                                 )}
-                            </tbody>
-                        </table>
+                            </TableBody>
+                        </Table>
                     </div>
                 </div>
             </div>

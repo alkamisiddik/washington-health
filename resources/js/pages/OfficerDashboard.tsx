@@ -1,19 +1,28 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import OfficerLayout from '@/layouts/OfficerLayout';
-import { Delivery } from '@/types';
+import { DashboardProps } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { CheckCircle2, Clock, Eye, Package, Truck } from 'lucide-react';
+import { CheckCircle2, Clock, Package, Truck } from 'lucide-react';
 
-interface Props {
-    stats: {
-        total_requests: number;
-        pending: number;
-        in_progress: number;
-        completed: number;
+export default function OfficerDashboard({ stats, recent_deliveries }: DashboardProps) {
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'pending':
+                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200 ring-yellow-600/20';
+            case 'assigned':
+                return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200 ring-blue-600/20';
+            case 'picked_up':
+                return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 ring-amber-600/20';
+            case 'in_transit':
+            case 'in_progress':
+                return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200 ring-indigo-600/20';
+            case 'completed':
+                return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200 ring-green-600/20';
+            default:
+                return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 ring-gray-600/20';
+        }
     };
-    recent_deliveries: Delivery[];
-}
 
-export default function OfficerDashboard({ stats, recent_deliveries }: Props) {
     return (
         <OfficerLayout breadcrumbs={[{ title: 'Officer Dashboard', href: '/officer/dashboard' }]}>
             <Head title="Officer Dashboard" />
@@ -77,63 +86,68 @@ export default function OfficerDashboard({ stats, recent_deliveries }: Props) {
                         </Link>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead className="bg-gray-50 dark:bg-gray-800/50">
-                                <tr>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">ID</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Locations</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Driver</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
-                                    <th className="px-6 py-3 font-medium text-gray-500 dark:text-gray-400">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                {recent_deliveries?.length > 0 ? (
-                                    recent_deliveries.map((delivery: Delivery) => (
-                                        <tr key={delivery.id}>
-                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-gray-100">#{delivery.id}</td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                                                {delivery.pickup_location} → {delivery.delivery_location}
-                                            </td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{delivery.driver?.name || 'Unassigned'}</td>
-                                            <td className="px-6 py-4">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-indigo-100 hover:bg-indigo-100 dark:bg-indigo-900/50 dark:hover:bg-indigo-900/50">
+                                    <TableHead>ID</TableHead>
+                                    <TableHead>Route (Pickup → Delivery)</TableHead>
+                                    <TableHead>Driver</TableHead>
+                                    <TableHead>Vehicle</TableHead>
+                                    <TableHead>Duration</TableHead>
+                                    <TableHead>Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+
+                            <TableBody>
+                                {recent_deliveries.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center font-medium text-muted-foreground">
+                                            No recent deliveries found.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    recent_deliveries.map((delivery) => (
+                                        <TableRow key={delivery.id} className="hover:bg-muted/50">
+                                            <TableCell className="font-medium">
+                                                <Link href={`/officer/deliveries/${delivery.id}`} className="hover:underline">
+                                                    #{delivery.id}
+                                                </Link>
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.pickup_location}
+                                                <span className="mx-1 text-muted-foreground/50">→</span>
+                                                {delivery.delivery_location}
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.driver?.name ?? <span className="text-muted-foreground/60 italic">Unassigned</span>}
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.vehicle?.vehicle_number ?? (
+                                                    <span className="text-muted-foreground/60 italic">Unassigned</span>
+                                                )}
+                                            </TableCell>
+
+                                            <TableCell className="text-muted-foreground">
+                                                {delivery.duration_minutes ? `${delivery.duration_minutes} min` : '-'}
+                                            </TableCell>
+
+                                            <TableCell>
                                                 <span
-                                                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
-                                                        delivery.status === 'pending'
-                                                            ? 'bg-yellow-100 text-yellow-700'
-                                                            : delivery.status === 'assigned'
-                                                              ? 'bg-blue-100 text-blue-700'
-                                                              : delivery.status === 'picked_up'
-                                                                ? 'bg-amber-100 text-amber-700'
-                                                                : delivery.status === 'in_transit' || delivery.status === 'in_progress'
-                                                                  ? 'bg-indigo-100 text-indigo-700'
-                                                                  : delivery.status === 'completed'
-                                                                    ? 'bg-green-100 text-green-700'
-                                                                    : 'bg-gray-100 text-gray-700'
-                                                    }`}
+                                                    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusColor(
+                                                        delivery.status,
+                                                    )}`}
                                                 >
                                                     {delivery.status.replace('_', ' ').toUpperCase()}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <Link
-                                                    href={`/officer/deliveries/${delivery.id}`}
-                                                    className="flex items-center gap-2 font-medium text-indigo-600 hover:text-indigo-700"
-                                                >
-                                                    <Eye className="h-4 w-4" /> View
-                                                </Link>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                            No recent deliveries found.
-                                        </td>
-                                    </tr>
                                 )}
-                            </tbody>
-                        </table>
+                            </TableBody>
+                        </Table>
                     </div>
                 </div>
             </div>

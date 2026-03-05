@@ -37,4 +37,12 @@ class ChainOfCustody extends Model
     {
         return !empty($this->driver_signature) && !empty($this->receiver_signature);
     }
+
+    /**
+     * Prepare a date for array / JSON serialization.
+     */
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d\TH:i:s.u\Z');
+    }
 }

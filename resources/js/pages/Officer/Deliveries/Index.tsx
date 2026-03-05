@@ -1,8 +1,11 @@
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import OfficerLayout from '@/layouts/OfficerLayout';
 import { Delivery, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
+import { Eye, MapPin, Package, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Index({ deliveries, filters }: { deliveries: PaginatedData<Delivery>; filters: { status: string } }) {
@@ -13,142 +16,197 @@ export default function Index({ deliveries, filters }: { deliveries: PaginatedDa
         router.get(route('officer.deliveries.index'), { status: newStatus }, { preserveState: true });
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadge = (status: string) => {
         switch (status) {
             case 'pending':
-                return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-yellow-200 bg-yellow-100 text-[10px] font-bold text-yellow-800 uppercase dark:bg-yellow-900/40 dark:text-yellow-300"
+                    >
+                        PENDING
+                    </Badge>
+                );
             case 'assigned':
-                return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-            case 'picked_up':
-                return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
-            case 'in_transit':
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-blue-200 bg-blue-100 text-[10px] font-bold text-blue-800 uppercase dark:bg-blue-900/40 dark:text-blue-300"
+                    >
+                        ASSIGNED
+                    </Badge>
+                );
             case 'in_progress':
-                return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-purple-200 bg-purple-100 text-[10px] font-bold text-purple-800 uppercase dark:bg-purple-900/40 dark:text-purple-300"
+                    >
+                        IN PROGRESS
+                    </Badge>
+                );
             case 'completed':
-                return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+                return (
+                    <Badge
+                        variant="outline"
+                        className="border-emerald-200 bg-emerald-100 text-[10px] font-bold text-emerald-800 uppercase dark:bg-emerald-900/40 dark:text-emerald-300"
+                    >
+                        COMPLETED
+                    </Badge>
+                );
             default:
-                return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+                return (
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase">
+                        {status.replace('_', ' ')}
+                    </Badge>
+                );
         }
     };
 
     return (
         <OfficerLayout breadcrumbs={[{ title: 'Deliveries', href: '/officer/deliveries' }]}>
             <Head title="Deliveries" />
-            <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Deliveries</h1>
-                    <Link
-                        href={route('officer.deliveries.create')}
-                        className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
-                    >
-                        New Delivery
-                    </Link>
+            <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 p-4 lg:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Deliveries Management</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Track and manage all your shipment requests.</p>
+                    </div>
+                    <Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                        <Link href={route('officer.deliveries.create')}>
+                            <Plus className="h-4 w-4" />
+                            New Delivery
+                        </Link>
+                    </Button>
                 </div>
 
-                <div className="sm:hidden">
-                    <Label htmlFor="tabs" className="sr-only">
-                        Select a status
-                    </Label>
-                    <Select value={statusFilter} onValueChange={(v) => handleFilterChange(v)}>
-                        <SelectTrigger id="tabs">
-                            <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="assigned">Assigned</SelectItem>
-                            <SelectItem value="picked_up">Picked Up</SelectItem>
-                            <SelectItem value="in_transit">In Transit</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="hidden sm:block">
-                    <nav className="flex space-x-4 border-b border-gray-200 dark:border-gray-700" aria-label="Tabs">
-                        {['all', 'pending', 'assigned', 'picked_up', 'in_transit', 'completed'].map((status) => (
-                            <button
-                                key={status}
-                                onClick={() => handleFilterChange(status)}
-                                className={`border-b-2 px-1 pb-4 text-sm font-medium whitespace-nowrap ${
-                                    statusFilter === status
-                                        ? 'border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-                                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300'
-                                }`}
-                            >
-                                {status === 'in_transit'
-                                    ? 'In Transit'
-                                    : status === 'picked_up'
-                                      ? 'Picked Up'
-                                      : status.charAt(0).toUpperCase() + status.slice(1)}
-                            </button>
-                        ))}
-                    </nav>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {deliveries.data.map((delivery: Delivery) => (
-                        <div
-                            key={delivery.id}
-                            className="relative flex flex-col overflow-hidden rounded-lg border bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                <div className="scrollbar-none flex flex-wrap gap-2 overflow-x-auto pb-2">
+                    {['all', 'pending', 'assigned', 'in_progress', 'completed'].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => handleFilterChange(status)}
+                            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                                statusFilter === status
+                                    ? 'bg-indigo-600 text-white shadow-md'
+                                    : 'border bg-white text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                            }`}
                         >
-                            <div className="mb-4 flex items-start justify-between">
-                                <div className="flex items-center gap-2">
-                                    <span
-                                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(delivery.status)}`}
-                                    >
-                                        {delivery.status.replace('_', ' ').toUpperCase()}
-                                    </span>
-                                    <span className="text-sm">
-                                        {delivery.driver ? (
-                                            <span className="font-medium text-gray-900 dark:text-gray-100">{delivery.driver.name}</span>
-                                        ) : (
-                                            <span className="text-gray-400 italic">Unassigned</span>
-                                        )}
-                                    </span>
-                                </div>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">#{delivery.id}</span>
-                            </div>
-
-                            <div className="mb-4 flex-1">
-                                <div className="mb-2">
-                                    <p className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Pickup</p>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{delivery.pickup_location}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Delivery</p>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{delivery.delivery_location}</p>
-                                </div>
-                            </div>
-
-                            <div className="mt-auto border-t border-gray-100 pt-4 dark:border-gray-700">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Scheduled</p>
-                                        <p className="text-sm text-gray-900 dark:text-gray-100">
-                                            {new Date(delivery.scheduled_time).toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Driver</p>
-                                        <p className="text-sm text-gray-900 dark:text-gray-100">
-                                            {delivery.driver ? delivery.driver.name : <span className="text-gray-400 italic">Unassigned</span>}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Link
-                                href={route('officer.deliveries.show', delivery.id)}
-                                className="absolute inset-0"
-                                aria-label={`View delivery ${delivery.id}`}
-                            ></Link>
-                        </div>
+                            {status === 'all' ? 'All Deliveries' : status.replace('_', ' ').toUpperCase()}
+                        </button>
                     ))}
                 </div>
 
-                {deliveries.data.length === 0 && (
-                    <div className="rounded-lg border bg-white p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-                        <p className="text-gray-500 dark:text-gray-400">No deliveries found matching the current filter.</p>
+                <Card className="overflow-hidden pt-0 shadow-sm dark:border-gray-700">
+                    <CardHeader className="border-b bg-indigo-100 py-4 dark:bg-indigo-900/50">
+                        <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                            <Package className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                            DELIVERY LOG
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-indigo-50/50 hover:bg-indigo-50/50 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/20">
+                                        <TableHead className="w-[80px]">ID</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Driver</TableHead>
+                                        <TableHead>Route Details</TableHead>
+                                        <TableHead>Scheduled</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {deliveries.data.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="h-48 text-center">
+                                                <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                                    <Package className="mb-2 h-10 w-10 opacity-20" />
+                                                    <p>No deliveries found matching the current filter.</p>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        deliveries.data.map((delivery: Delivery) => (
+                                            <TableRow
+                                                key={delivery.id}
+                                                className="group transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/50"
+                                            >
+                                                <TableCell className="font-mono text-xs font-bold text-muted-foreground">#{delivery.id}</TableCell>
+                                                <TableCell>{getStatusBadge(delivery.status)}</TableCell>
+                                                <TableCell>
+                                                    {delivery.driver ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-600 uppercase dark:bg-indigo-900/30">
+                                                                {delivery.driver.name.charAt(0)}
+                                                            </div>
+                                                            <span className="text-sm font-medium">{delivery.driver.name}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                                            <MapPin className="h-3 w-3 text-indigo-500" />
+                                                            {delivery.delivery_location}
+                                                        </div>
+                                                        <div className="mt-0.5 pl-5 text-[11px] tracking-tight text-muted-foreground uppercase">
+                                                            From: {delivery.pickup_location}
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="text-sm font-medium">
+                                                        {new Date(delivery.scheduled_time).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                        })}
+                                                    </div>
+                                                    <div className="text-[11px] text-muted-foreground">
+                                                        {new Date(delivery.scheduled_time).toLocaleTimeString('en-US', {
+                                                            hour: 'numeric',
+                                                            minute: '2-digit',
+                                                        })}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        asChild
+                                                        className="h-8 w-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                    >
+                                                        <Link href={route('officer.deliveries.show', delivery.id)}>
+                                                            <Eye className="h-4 w-4" />
+                                                            <span className="sr-only">View</span>
+                                                        </Link>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {deliveries.links && deliveries.links.length > 3 && (
+                    <div className="flex justify-center gap-2 pt-4">
+                        {deliveries.links.map((link, idx) => (
+                            <Button
+                                key={idx}
+                                variant={link.active ? 'default' : 'outline'}
+                                size="sm"
+                                asChild
+                                disabled={!link.url}
+                                className={!link.url ? 'pointer-events-none opacity-50' : ''}
+                            >
+                                <Link href={link.url || '#'} dangerouslySetInnerHTML={{ __html: link.label }} />
+                            </Button>
+                        ))}
                     </div>
                 )}
             </div>

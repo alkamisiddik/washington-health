@@ -14,16 +14,19 @@ export default function AuthSplitLayout({ children, title, description }: PropsW
     return (
         <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
             <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-                <div className="absolute inset-0 bg-zinc-900" />
-                <Link href={route('home')} className="relative z-20 flex items-center text-lg font-medium">
-                    <AppLogoIcon className="mr-2 size-8 fill-current text-white" />
-                    {name}
+                <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/images/auth-bg.png')" }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+
+                <Link href={route('home')} className="relative z-20 flex items-center text-xl font-bold tracking-tight">
+                    <AppLogoIcon className="mr-3 size-10 fill-current text-white" />
+                    <span className="text-2xl tracking-wider uppercase">{name}</span>
                 </Link>
+
                 {quote && (
                     <div className="relative z-20 mt-auto">
-                        <blockquote className="space-y-2">
-                            <p className="text-lg">&ldquo;{quote.message}&rdquo;</p>
-                            <footer className="text-sm text-neutral-300">{quote.author}</footer>
+                        <blockquote className="space-y-4 border-l-4 border-indigo-500 pl-6">
+                            <p className="text-xl leading-relaxed font-light italic">&ldquo;{quote.message}&rdquo;</p>
+                            <footer className="text-sm font-medium tracking-widest text-indigo-400 uppercase">{quote.author}</footer>
                         </blockquote>
                     </div>
                 )}

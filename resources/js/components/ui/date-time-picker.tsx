@@ -1,15 +1,15 @@
-import * as React from 'react';
-import { format, parseISO, isValid, isToday } from 'date-fns';
-import { CalendarIcon, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { format, isToday, isValid, parseISO } from 'date-fns';
+import { CalendarIcon, Clock } from 'lucide-react';
+import * as React from 'react';
 
 /** Normalize to datetime-local format YYYY-MM-DDTHH:mm (no seconds, no timezone) */
 export function toDateTimeLocal(value: string | undefined): string {
@@ -68,8 +68,15 @@ function DateTimePicker({ value = '', onChange, className, placeholder, readOnly
     (dateStr: string, timeStr: string) => {
       if (!dateStr) return;
       const t = timeStr || '09:00';
-      const next = `${dateStr}T${t}`;
-      onChange?.(next);
+      // Create a local date object from the parts
+      const localString = `${dateStr}T${t}`;
+      const d = new Date(localString);
+      
+      if (isValid(d)) {
+        onChange?.(d.toISOString());
+      } else {
+        onChange?.(localString);
+      }
     },
     [onChange]
   );

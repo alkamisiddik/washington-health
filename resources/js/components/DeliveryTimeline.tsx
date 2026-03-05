@@ -27,13 +27,23 @@ interface DeliveryTimelineProps {
 
 function fmt(dt: string | null | undefined): string {
     if (!dt) return '';
-    return new Date(dt).toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+    try {
+        // Normalize for browsers: replace space with T if needed
+        const normalized = dt.includes('T') ? dt : dt.replace(' ', 'T');
+        const date = new Date(normalized);
+        if (isNaN(date.getTime())) return dt;
+
+        return date.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    } catch {
+        return dt || '';
+    }
 }
 
 export default function DeliveryTimeline({ delivery }: DeliveryTimelineProps) {

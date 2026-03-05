@@ -43,6 +43,10 @@ export interface DashboardProps {
         in_progress: number;
         completed_today: number;
         pending: number;
+        assigned_today: number;
+        completed_all: number;
+        total_requests: number;
+        completed: number;
     };
     recent_deliveries: Delivery[];
     chart_data: ChartItem[];

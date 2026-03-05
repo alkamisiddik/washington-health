@@ -93,4 +93,12 @@ class Delivery extends Model
 
         return $query->exists();
     }
+
+    /**
+     * Prepare a date for array / JSON serialization.
+     */
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('Y-m-d\TH:i:s.u\Z');
+    }
 }

@@ -5,7 +5,7 @@
     <title>Compliance Report - {{ $delivery->id }}</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Arial, DejaVu Sans, sans-serif;
             font-size: 12px;
             color: #333;
             line-height: 1.5;

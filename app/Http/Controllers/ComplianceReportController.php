@@ -10,6 +10,11 @@ class ComplianceReportController extends Controller
 {
     public function export(Delivery $delivery)
     {
+        // Check for GD extension
+        if (!extension_loaded('gd')) {
+            abort(500, 'The PHP GD extension is required to generate PDF reports with signatures. Please install it (e.g., sudo apt install php-gd) and restart the server.');
+        }
+
         // Auth: admin OR officer who owns it
         $user = auth()->user();
         if ($user->role !== 'admin' && $delivery->requested_by !== $user->id) {

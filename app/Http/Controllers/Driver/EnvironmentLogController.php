@@ -22,9 +22,23 @@ class EnvironmentLogController extends Controller
             'end_temp' => 'nullable|numeric',
             'end_humidity' => 'nullable|numeric',
             'extra_logs' => 'nullable|array',
+            'extra_logs.*.temp' => 'nullable',
+            'extra_logs.*.humidity' => 'nullable',
+            'extra_logs.*.label' => 'nullable|string',
         ];
 
         $validated = $request->validate($rules);
+
+        // Filter out empty extra logs
+        if (!empty($validated['extra_logs'])) {
+            $validated['extra_logs'] = array_filter($validated['extra_logs'], function ($log) {
+                return !empty($log['temp']) || !empty($log['humidity']);
+            });
+            // Re-index array for JSON storage
+            $validated['extra_logs'] = array_values($validated['extra_logs']);
+        } else {
+            $validated['extra_logs'] = [];
+        }
 
         // Check ranges
         $validated['start_in_range'] = $this->checkRange($validated['start_temp'], $validated['start_humidity']);
@@ -32,12 +46,10 @@ class EnvironmentLogController extends Controller
         $validated['end_in_range'] = $this->checkRange($validated['end_temp'], $validated['end_humidity']);
 
         $extraExcursion = false;
-        if (!empty($validated['extra_logs'])) {
-            foreach ($validated['extra_logs'] as $log) {
-                if (!$this->checkRange($log['temp'] ?? null, $log['humidity'] ?? null)) {
-                    $extraExcursion = true;
-                    break;
-                }
+        foreach ($validated['extra_logs'] as $log) {
+            if (!$this->checkRange($log['temp'] ?? null, $log['humidity'] ?? null)) {
+                $extraExcursion = true;
+                break;
             }
         }
 
@@ -62,13 +74,16 @@ class EnvironmentLogController extends Controller
 
     private function checkRange($temp, $humidity)
     {
-        if ($temp === null && $humidity === null) return true; // not logged yet
+        // Treat null or empty string as "not logged"
+        if (($temp === null || $temp === '') && ($humidity === null || $humidity === '')) {
+            return true;
+        }
 
-        if ($temp !== null && ($temp < EnvironmentLog::TEMP_MIN || $temp > EnvironmentLog::TEMP_MAX)) {
+        if ($temp !== null && $temp !== '' && ($temp < EnvironmentLog::TEMP_MIN || $temp > EnvironmentLog::TEMP_MAX)) {
             return false;
         }
 
-        if ($humidity !== null && ($humidity < EnvironmentLog::HUM_MIN || $humidity > EnvironmentLog::HUM_MAX)) {
+        if ($humidity !== null && $humidity !== '' && ($humidity < EnvironmentLog::HUM_MIN || $humidity > EnvironmentLog::HUM_MAX)) {
             return false;
         }
 

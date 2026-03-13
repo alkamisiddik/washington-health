@@ -49,6 +49,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('reports/vehicle-inspection-log', [\App\Http\Controllers\Admin\DashboardController::class, 'vehicleInspectionLog'])->name('reports.vehicle-log');
         Route::resource('vehicles', \App\Http\Controllers\Admin\VehicleController::class);
         Route::patch('vehicles/{vehicle}/status', [\App\Http\Controllers\Admin\VehicleController::class, 'updateStatus'])->name('vehicles.status');
+        Route::get('quality-reports', [\App\Http\Controllers\Admin\QualityReportController::class, 'index'])->name('quality-reports.index');
+        Route::post('quality-reports', [\App\Http\Controllers\Admin\QualityReportController::class, 'store'])->name('quality-reports.store');
+        Route::get('quality-reports/random-delivery', [\App\Http\Controllers\Admin\QualityReportController::class, 'randomDelivery'])->name('quality-reports.random-delivery');
+        Route::delete('quality-reports/{quality_report}', [\App\Http\Controllers\Admin\QualityReportController::class, 'destroy'])->name('quality-reports.destroy');
     });
 
     // OFFICER Routes
@@ -60,6 +64,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('deliveries', [\App\Http\Controllers\Officer\DeliveryController::class, 'store'])->name('deliveries.store');
         Route::post('deliveries/{delivery}/assign', [\App\Http\Controllers\Officer\DeliveryController::class, 'assignDriver'])->name('deliveries.assign');
         Route::get('deliveries/{delivery}', [\App\Http\Controllers\Officer\DeliveryController::class, 'show'])->name('deliveries.show');
+        Route::post('quality-reports', [\App\Http\Controllers\Admin\QualityReportController::class, 'store'])->name('quality-reports.store');
+        Route::get('quality-reports/random-delivery', [\App\Http\Controllers\Admin\QualityReportController::class, 'randomDelivery'])->name('quality-reports.random-delivery');
     });
 
     // DRIVER Routes

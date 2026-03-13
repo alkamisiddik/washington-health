@@ -1,3 +1,4 @@
+import { VehicleCard } from '@/components/custom/vehicles/VehicleCard';
 import { Pagination } from '@/components/custom/Pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -146,7 +147,25 @@ export default function Index({ vehicles, filters }: { vehicles: PaginatedData<V
                     </Select>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                {/* Mobile: card list */}
+                <div className="space-y-3 md:hidden">
+                    {vehicles.data.map((vehicle: Vehicle) => (
+                        <VehicleCard
+                            key={vehicle.id}
+                            vehicle={vehicle}
+                            onStatusChange={handleStatusChange}
+                            onDelete={handleDelete}
+                        />
+                    ))}
+                    {vehicles.data.length === 0 && (
+                        <div className="rounded-xl border bg-white p-8 text-center text-muted-foreground dark:border-gray-700 dark:bg-gray-800">
+                            No vehicles found matching the criteria.
+                        </div>
+                    )}
+                </div>
+
+                {/* Tablet/Desktop: table */}
+                <div className="hidden overflow-hidden rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 md:block">
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>

@@ -171,6 +171,27 @@ export interface AppNotification {
     updated_at: string;
 }
 
+export interface QualityReport {
+    id: number;
+    month_year: string;
+    vehicle_ids: string | null;
+    transport_days_reviewed: string | null;
+    environmental_excursions: string | null;
+    corrective_actions: string | null;
+    training_issues: string | null;
+    preventive_improvements: string | null;
+    supervisor_name: string | null;
+    signature_date: string | null;
+    delivery_id: number | null;
+    vehicle_id: number | null;
+    created_by: number | null;
+    created_at: string;
+    updated_at: string;
+    delivery?: Delivery;
+    vehicle?: Vehicle;
+    creator?: User;
+}
+
 export interface PaginatedData<T> {
     current_page: number;
     data: T[];

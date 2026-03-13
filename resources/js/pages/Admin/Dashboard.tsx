@@ -123,67 +123,59 @@ export default function Dashboard({ stats, recent_deliveries, chart_data }: Dash
                 </div>
 
                 <div className="overflow-hidden rounded-xl border bg-gray-100 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                    <div className="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Deliveries</h2>
+                    <div className="flex items-center justify-between border-b px-4 py-2 dark:border-gray-700">
+                        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Recent Deliveries</h2>
                         <Link
                             href="/admin/deliveries"
-                            className="rounded-lg border border-indigo-100/50 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+                            className="rounded-md border border-indigo-100/50 px-3 py-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
                         >
                             View all
                         </Link>
                     </div>
                     <div className="overflow-x-auto border-t dark:border-gray-700">
-                        <Table>
+                        <Table className="text-xs">
                             <TableHeader>
                                 <TableRow className="bg-indigo-100 hover:bg-indigo-100 dark:bg-indigo-900/50 dark:hover:bg-indigo-900/50">
-                                    <TableHead>ID</TableHead>
-                                    <TableHead>Route (Pickup → Delivery)</TableHead>
-                                    <TableHead>Driver</TableHead>
-                                    <TableHead>Vehicle</TableHead>
-                                    <TableHead>Duration</TableHead>
-                                    <TableHead>Status</TableHead>
+                                    <TableHead className="h-9 px-3 py-2 font-medium">ID</TableHead>
+                                    <TableHead className="h-9 px-3 py-2 font-medium">Route</TableHead>
+                                    <TableHead className="h-9 px-3 py-2 font-medium">Driver</TableHead>
+                                    <TableHead className="h-9 px-3 py-2 font-medium">Vehicle</TableHead>
+                                    <TableHead className="h-9 px-3 py-2 font-medium">Duration</TableHead>
+                                    <TableHead className="h-9 px-3 py-2 font-medium">Status</TableHead>
                                 </TableRow>
                             </TableHeader>
-
                             <TableBody>
                                 {recent_deliveries.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center font-medium text-muted-foreground">
+                                        <TableCell colSpan={6} className="h-16 px-3 py-2 text-center text-muted-foreground">
                                             No recent deliveries found.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     recent_deliveries.map((delivery) => (
                                         <TableRow key={delivery.id} className="hover:bg-muted/50">
-                                            <TableCell className="font-medium">
+                                            <TableCell className="px-3 py-2 font-medium">
                                                 <Link href={`/admin/deliveries/${delivery.id}`} className="hover:underline">
                                                     #{delivery.id}
                                                 </Link>
                                             </TableCell>
-
-                                            <TableCell className="text-muted-foreground">
+                                            <TableCell className="max-w-[180px] truncate px-3 py-2 text-muted-foreground" title={`${delivery.pickup_location} → ${delivery.delivery_location}`}>
                                                 {delivery.pickup_location}
                                                 <span className="mx-1 text-muted-foreground/50">→</span>
                                                 {delivery.delivery_location}
                                             </TableCell>
-
-                                            <TableCell className="text-muted-foreground">
-                                                {delivery.driver?.name ?? <span className="text-muted-foreground/60 italic">Unassigned</span>}
+                                            <TableCell className="truncate px-3 py-2 text-muted-foreground max-w-[100px]">
+                                                {delivery.driver?.name ?? <span className="italic text-muted-foreground/60">—</span>}
                                             </TableCell>
-
-                                            <TableCell className="text-muted-foreground">
-                                                {delivery.vehicle?.vehicle_number ?? (
-                                                    <span className="text-muted-foreground/60 italic">Unassigned</span>
-                                                )}
+                                            <TableCell className="px-3 py-2 text-muted-foreground">
+                                                {delivery.vehicle?.vehicle_number ?? <span className="italic text-muted-foreground/60">—</span>}
                                             </TableCell>
-
-                                            <TableCell className="text-muted-foreground">
-                                                {delivery.duration_minutes ? `${delivery.duration_minutes} min` : '-'}
+                                            <TableCell className="px-3 py-2 text-muted-foreground">
+                                                {delivery.duration_minutes ? `${delivery.duration_minutes} m` : '—'}
                                             </TableCell>
-
-                                            <TableCell>
+                                            <TableCell className="px-3 py-2">
                                                 <span
-                                                    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${getStatusColor(
+                                                    className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset ${getStatusColor(
                                                         delivery.status,
                                                     )}`}
                                                 >

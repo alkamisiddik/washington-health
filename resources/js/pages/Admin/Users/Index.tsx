@@ -1,3 +1,4 @@
+import { UserCard } from '@/components/custom/users/UserCard';
 import { Pagination } from '@/components/custom/Pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,6 @@ export default function Index({ users }: { users: PaginatedData<User> }) {
         });
     };
 
-    console.log(users);
     return (
         <AdminLayout breadcrumbs={[{ title: 'Dashboard', href: '/admin/dashboard' }]}>
             <Head title="Manage Users" />
@@ -127,7 +127,20 @@ export default function Index({ users }: { users: PaginatedData<User> }) {
                     </Card>
                 )}
 
-                <div className="overflow-hidden rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                {/* Mobile: card list */}
+                <div className="space-y-3 md:hidden">
+                    {users.data.map((user: User) => (
+                        <UserCard
+                            key={user.id}
+                            user={user}
+                            currentUserId={auth.user.id}
+                            onRoleChange={handleRoleChange}
+                        />
+                    ))}
+                </div>
+
+                {/* Tablet/Desktop: table */}
+                <div className="hidden overflow-hidden rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 md:block">
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
@@ -192,6 +205,7 @@ export default function Index({ users }: { users: PaginatedData<User> }) {
                         </Table>
                     </div>
                 </div>
+
                 {/* Pagination */}
                 {users.links && users.links.length > 3 && <Pagination data={users} />}
             </div>

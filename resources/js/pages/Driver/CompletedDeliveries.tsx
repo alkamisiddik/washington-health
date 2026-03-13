@@ -1,3 +1,4 @@
+import { CompletedDeliveryCard } from '@/components/custom/deliveries/CompletedDeliveryCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,7 +46,21 @@ export default function CompletedDeliveries({ deliveries }: Props) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="overflow-x-auto">
+                        {/* Mobile: card list */}
+                        <div className="space-y-3 p-4 md:hidden">
+                            {list.length === 0 ? (
+                                <div className="flex h-32 flex-col items-center justify-center text-center text-muted-foreground">
+                                    <CheckCircle2 className="mb-2 h-8 w-8 opacity-20" />
+                                    <p className="text-sm">No completed deliveries found.</p>
+                                </div>
+                            ) : (
+                                list.map((delivery) => (
+                                    <CompletedDeliveryCard key={delivery.id} delivery={delivery} />
+                                ))
+                            )}
+                        </div>
+                        {/* Tablet/Desktop: table */}
+                        <div className="hidden overflow-x-auto md:block">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-indigo-50/50 hover:bg-indigo-50/50 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/20">

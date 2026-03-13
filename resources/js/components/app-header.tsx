@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { confirmAction } from '@/utils/alerts';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, CheckCircle2, FileBarChart, LayoutGrid, LogOut, PlusSquare, Settings, ShoppingBag, Truck, Users } from 'lucide-react';
+import { Bell, CheckCircle2, ClipboardCheck, FileBarChart, LayoutGrid, LogOut, PlusSquare, Settings, ShoppingBag, Truck, Users } from 'lucide-react';
 import React from 'react';
 
 export interface NavItem {
@@ -30,6 +30,7 @@ const getNavItems = (role: string): NavItem[] => {
                 { title: 'Vehicles', href: '/admin/vehicles', icon: Truck },
                 { title: 'All Deliveries', href: '/admin/deliveries', icon: ShoppingBag },
                 { title: 'Reports', href: '/admin/reports', icon: FileBarChart },
+                { title: 'Quality Reports', href: '/admin/quality-reports', icon: ClipboardCheck },
             ];
         case 'officer':
             return [
@@ -96,7 +97,7 @@ export function AppHeader({ breadcrumbs = [], navItems: propNavItems = [] }: App
                                             <Link
                                                 href={item.href}
                                                 title={item.title}
-                                                className={`flex items-center space-x-2 rounded-md px-2 py-2 text-sm font-medium transition-all hover:bg-blue-50 hover:text-blue-600 sm:px-3 dark:hover:bg-gray-700 dark:hover:text-blue-400 ${
+                                                className={`flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center space-x-2 rounded-md px-2 py-2 text-sm font-medium transition-all hover:bg-blue-50 hover:text-blue-600 sm:min-h-0 sm:min-w-0 sm:justify-start sm:px-3 dark:hover:bg-gray-700 dark:hover:text-blue-400 ${
                                                     active
                                                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
                                                         : 'text-gray-600 dark:text-gray-300'
@@ -114,7 +115,7 @@ export function AppHeader({ breadcrumbs = [], navItems: propNavItems = [] }: App
                         {/* Right Section Tools */}
                         <div className="flex items-center space-x-1 md:space-x-2">
                             <NotificationDropdown>
-                                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full sm:h-10 sm:w-10">
+                                <Button variant="ghost" size="icon" className="relative h-11 min-h-[44px] min-w-[44px] touch-manipulation rounded-full sm:h-10 sm:w-10 sm:min-h-0 sm:min-w-0">
                                     <Bell className="h-[1.2rem] w-[1.2rem] text-gray-600 dark:text-gray-300" />
                                     {auth.unread_notifications_count > 0 && (
                                         <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-800">
@@ -128,7 +129,7 @@ export function AppHeader({ breadcrumbs = [], navItems: propNavItems = [] }: App
                                 <Button
                                     variant={isActive(settingRoutes) ? 'secondary' : 'ghost'}
                                     size="icon"
-                                    className="h-9 w-9 rounded-full sm:h-10 sm:w-10"
+                                    className="h-11 min-h-[44px] min-w-[44px] touch-manipulation rounded-full sm:h-10 sm:w-10 sm:min-h-0 sm:min-w-0"
                                 >
                                     <Settings className="h-[1.2rem] w-[1.2rem] text-gray-600 dark:text-gray-300" />
                                 </Button>
@@ -138,7 +139,7 @@ export function AppHeader({ breadcrumbs = [], navItems: propNavItems = [] }: App
                                 variant="ghost"
                                 size="icon"
                                 title="Logout"
-                                className="h-9 w-9 rounded-full text-gray-600 hover:text-red-600 sm:h-10 sm:w-10 dark:text-gray-300 dark:hover:text-red-400"
+                                className="h-11 min-h-[44px] min-w-[44px] touch-manipulation rounded-full text-gray-600 hover:text-red-600 sm:h-10 sm:w-10 sm:min-h-0 sm:min-w-0 dark:text-gray-300 dark:hover:text-red-400"
                                 onClick={async () => {
                                     if (await confirmAction('Logout', 'Are you sure you want to log out?', 'info')) {
                                         router.post(route('logout'));

@@ -1,19 +1,35 @@
+import { DeliveryCard } from '@/components/custom/deliveries/DeliveryCard';
+import { QualityReviewForm } from '@/components/QualityReviewForm';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import OfficerLayout from '@/layouts/OfficerLayout';
 import { Delivery, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye, MapPin, Package, Plus } from 'lucide-react';
+import { ClipboardCheck, Eye, MapPin, Package, Plus, Shuffle } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Index({ deliveries, filters }: { deliveries: PaginatedData<Delivery>; filters: { status: string } }) {
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
+    const [reviewOpen, setReviewOpen] = useState(false);
+    const [reviewDeliveryId, setReviewDeliveryId] = useState<number | null>(null);
+    const [reviewVehicleId, setReviewVehicleId] = useState<number | null>(null);
 
     const handleFilterChange = (newStatus: string) => {
         setStatusFilter(newStatus);
         router.get(route('officer.deliveries.index'), { status: newStatus }, { preserveState: true });
+    };
+
+    const handleReviewRandom = async () => {
+        const res = await fetch(route('officer.quality-reports.random-delivery'));
+        const json = (await res.json()) as { id: number | null; vehicle_id?: number | null };
+        if (json.id) {
+            setReviewDeliveryId(json.id);
+            setReviewVehicleId(json.vehicle_id ?? null);
+            setReviewOpen(true);
+        }
     };
 
     const getStatusBadge = (status: string) => {
@@ -72,12 +88,18 @@ export default function Index({ deliveries, filters }: { deliveries: PaginatedDa
                         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Deliveries Management</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Track and manage all your shipment requests.</p>
                     </div>
-                    <Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-                        <Link href={route('officer.deliveries.create')}>
-                            <Plus className="h-4 w-4" />
-                            New Delivery
-                        </Link>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" onClick={handleReviewRandom} className="gap-1.5 text-xs">
+                            <Shuffle className="h-3.5 w-3.5" />
+                            Review Random Delivery
+                        </Button>
+                        <Button asChild className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                            <Link href={route('officer.deliveries.create')}>
+                                <Plus className="h-4 w-4" />
+                                New Delivery
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="scrollbar-none flex flex-wrap gap-2 overflow-x-auto pb-2">
@@ -104,7 +126,36 @@ export default function Index({ deliveries, filters }: { deliveries: PaginatedDa
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="overflow-x-auto">
+                        {/* Mobile: card list */}
+                        <div className="space-y-3 p-4 md:hidden">
+                            {deliveries.data.length === 0 ? (
+                                <div className="flex h-32 flex-col items-center justify-center text-center text-muted-foreground">
+                                    <Package className="mb-2 h-8 w-8 opacity-20" />
+                                    <p className="text-sm">No deliveries found matching the current filter.</p>
+                                </div>
+                            ) : (
+                                deliveries.data.map((delivery: Delivery) => (
+                                    <div key={delivery.id} className="space-y-1">
+                                        <DeliveryCard delivery={delivery} getStatusBadge={getStatusBadge} />
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full gap-1.5 text-xs"
+                                            onClick={() => {
+                                                setReviewDeliveryId(delivery.id);
+                                                setReviewVehicleId(delivery.vehicle_id ?? null);
+                                                setReviewOpen(true);
+                                            }}
+                                        >
+                                            <ClipboardCheck className="h-3.5 w-3.5" />
+                                            Review Delivery
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        {/* Tablet/Desktop: table */}
+                        <div className="hidden overflow-x-auto md:block">
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-indigo-50/50 hover:bg-indigo-50/50 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/20">
@@ -172,17 +223,32 @@ export default function Index({ deliveries, filters }: { deliveries: PaginatedDa
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        asChild
-                                                        className="h-8 w-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
-                                                    >
-                                                        <Link href={route('officer.deliveries.show', delivery.id)}>
-                                                            <Eye className="h-4 w-4" />
-                                                            <span className="sr-only">View</span>
-                                                        </Link>
-                                                    </Button>
+                                                    <div className="flex justify-end gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                            title="Review Delivery"
+                                                            onClick={() => {
+                                                                setReviewDeliveryId(delivery.id);
+                                                                setReviewVehicleId(delivery.vehicle_id ?? null);
+                                                                setReviewOpen(true);
+                                                            }}
+                                                        >
+                                                            <ClipboardCheck className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            asChild
+                                                            className="h-8 w-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        >
+                                                            <Link href={route('officer.deliveries.show', delivery.id)}>
+                                                                <Eye className="h-4 w-4" />
+                                                                <span className="sr-only">View</span>
+                                                            </Link>
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -210,6 +276,24 @@ export default function Index({ deliveries, filters }: { deliveries: PaginatedDa
                     </div>
                 )}
             </div>
+
+            <Dialog open={reviewOpen} onOpenChange={(open) => { setReviewOpen(open); if (!open) { setReviewDeliveryId(null); setReviewVehicleId(null); } }}>
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <ClipboardCheck className="h-4 w-4" />
+                            Delivery Quality Review
+                        </DialogTitle>
+                    </DialogHeader>
+                    <QualityReviewForm
+                        key={`${reviewDeliveryId ?? 0}-${reviewVehicleId ?? 0}`}
+                        submitRoute={route('officer.quality-reports.store')}
+                        initialDeliveryId={reviewDeliveryId}
+                        initialVehicleId={reviewVehicleId}
+                        onSuccess={() => { setReviewOpen(false); setReviewDeliveryId(null); setReviewVehicleId(null); }}
+                    />
+                </DialogContent>
+            </Dialog>
         </OfficerLayout>
     );
 }

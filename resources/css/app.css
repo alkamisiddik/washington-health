@@ -75,6 +75,15 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    /* Mobile-first: improve tap responsiveness and touch targets */
+    @media (hover: none) and (pointer: coarse) {
+        button,
+        a[href],
+        [role="button"] {
+            touch-action: manipulation;
+        }
+    }
 }
 
 :root {

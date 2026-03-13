@@ -109,6 +109,10 @@ class DashboardController extends Controller
     {
         $query = Delivery::with(['driver', 'officer', 'vehicle']);
 
+        if ($request->filled('id')) {
+            $query->where('id', $request->id);
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -129,7 +133,7 @@ class DashboardController extends Controller
             $query->whereDate('scheduled_time', '<=', $request->date_to);
         }
 
-        $deliveries = $query->latest()->paginate(10)->withQueryString();
+        $deliveries = $query->latest()->paginate(15)->withQueryString();
 
         $drivers  = User::where('role', 'driver')->get(['id', 'name']);
         $vehicles = Vehicle::orderBy('vehicle_number')->get(['id', 'vehicle_number']);
@@ -138,7 +142,7 @@ class DashboardController extends Controller
             'deliveries' => $deliveries,
             'drivers'    => $drivers,
             'vehicles'   => $vehicles,
-            'filters'    => $request->only(['status', 'driver_id', 'vehicle_id', 'date_from', 'date_to']),
+            'filters'    => $request->only(['id', 'status', 'driver_id', 'vehicle_id', 'date_from', 'date_to']),
         ]);
     }
 
@@ -209,6 +213,9 @@ class DashboardController extends Controller
     {
         $query = Delivery::with(['driver', 'officer', 'vehicle', 'chainOfCustody']);
 
+        if ($request->filled('id')) {
+            $query->where('id', $request->id);
+        }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
